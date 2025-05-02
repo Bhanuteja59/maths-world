@@ -31,8 +31,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        <script src="../node_modules/flyonui/flyonui.js"></script>
-        <script src="../node_modules/flyonui/dist/js/accordion.js"></script> 
+        <script src="../node_modules/flyonui/flyonui.js" async></script>
+        <script src="../node_modules/flyonui/dist/js/accordion.js" async></script> 
       </body>
     </html>
   );
