@@ -191,3 +191,21 @@
       transform: translate(100px,100px) rotate(112deg);
     }
   }
+
+  .beginner-loading {
+    margin-left: 40%;
+    margin-top: 20%;
+    position: relative;
+  }
+  
+  /* Center on small screens */
+  @media (max-width: 768px) {
+    .beginner-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin: 0;
+      transform: translate(-50%, -50%);
+    }
+  }
+  

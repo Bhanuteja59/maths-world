@@ -310,3 +310,13 @@ footer {
     transform: rotateY(0deg);
   }
 }
+
+@media (max-width: 767px) {
+  .loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: 0;
+    transform: translate(-50%, -50%);
+  }
+}

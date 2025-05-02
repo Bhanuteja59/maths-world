@@ -145,7 +145,7 @@ export default function Advanced() {
           value={userAnswer}
           onChange={(e) => setUserAnswer(e.target.value)}
         />
-        <div className="flex justify-between mt-4">
+        <div className="flex justify-between mt-4 g-4">
           <button
             className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
             onClick={checkAnswer}

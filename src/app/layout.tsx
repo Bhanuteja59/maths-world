@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
   
   title: "Maths World",
-  description: "Created by Bunny",
+  description: "Created by R.BhanuTeja",
 };
 
 export default function RootLayout({
