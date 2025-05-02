@@ -3,11 +3,11 @@ import React from 'react'
 function Footer() {
   return (
     <div>
-       <footer className="bg-amber-50 text-amber-900 py-16 px-6">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+      <footer className="bg-amber-50 text-amber-900 py-16 px-6 ">
+        <div className="container">
+          <div className="grid gap-12 ">
             {/* Services Column */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <h3 className="text-xl font-bold text-amber-800 mb-6 font-serif">
                 Services
               </h3>
@@ -15,8 +15,8 @@ function Footer() {
                 {['Branding', 'Design', 'Marketing', 'Advertisement'].map((item) => (
                   <li key={item}>
                     <a
-                      href="#"
-                      className="hover:text-amber-700 transition-colors duration-300 flex items-center group"
+                      type="button"
+                      className="hover:text-amber-700 transition-colors duration-300 flex items-center group bg-transparent border-none p-0 cursor-pointer"
                     >
                       <span className="w-2 h-2 bg-amber-600 rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                       {item}
@@ -24,17 +24,17 @@ function Footer() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </div> */}
 
             {/* Company Column */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <h3 className="text-xl font-bold text-amber-800 mb-6 font-serif">
                 Company
               </h3>
               <ul className="space-y-3">
                 {['About us', 'Contact', 'Jobs', 'Press kit'].map((item) => (
                   <li key={item}>
-                    <a
+                    <a 
                       href="#"
                       className="hover:text-amber-700 transition-colors duration-300 flex items-center group"
                     >
@@ -44,15 +44,15 @@ function Footer() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </div> */}
 
             {/* Social Media Column */}
-            <div className="space-y-6">
-              <h3 className="text-xl font-bold text-amber-800 mb-6 font-serif">
-                Connect With Me
+            <div className=" col align-items-center grid items-center justify-center">
+              <h3 className="">
+                Connect With Developer
               </h3>
 
-              <div className="flex space-x-6">
+              <div className="flex space-x-6 p-4">
                 {/* GitHub */}
                 <a
                   href="https://github.com/Bhanuteja59"
@@ -79,7 +79,7 @@ function Footer() {
 
                 {/* LinkedIn */}
                 <a
-                  href="www.linkedin.com/in/reddy-bhanuteja-160bb4184"
+                  href="https://www.linkedin.com/in/bhanuteja59/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-amber-800 hover:text-amber-600 transition-colors duration-300"
@@ -124,6 +124,29 @@ function Footer() {
                     </div>
                   </div>
                 </a>
+
+                {/* Gmail */}
+                <a
+                  href="mailto:bhanutejareddy59@gmail.com"
+                  className="text-amber-800 hover:text-amber-600 transition-colors duration-300"
+                  aria-label="Gmail"
+                >
+                  <div className="relative group">
+                    <div className="relative bg-amber-100 p-3 rounded-lg flex items-center justify-center w-12 h-12 border border-amber-200 hover:border-amber-300 transition-all">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="w-6 h-6"
+                      >
+                        <path d="M12 13.065L2 6.5v11c0 .827.673 1.5 1.5 1.5h17c.827 0 1.5-.673 1.5-1.5v-11l-10 6.565zM12 11L2 4h20l-10 7z" />
+                      </svg>
+                    </div>
+                  </div>
+                </a>
+
               </div>
             </div>
           </div>
