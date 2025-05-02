@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import LevelCard from './LevelCard';
-import Loading from './Loading';
+import loading from './loading';
 import { motion } from 'framer-motion';
 import "./style.css"
 
@@ -17,7 +17,7 @@ export default function Page() {
   }, []);
 
   if (isLoading) {
-    return <Loading />;
+    return <loading />;
   }
 
   return (
@@ -90,7 +90,7 @@ export default function Page() {
         <div className="mt-20 flex justify-center space-x-8 opacity-60">
           {['➕', '➖', '✖️', '➗'].map((symbol, index) => (
             <motion.span
-              key={index}
+              key={symbol}
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 0.6 }}
               transition={{ delay: 1 + index * 0.2, type: 'spring' }}

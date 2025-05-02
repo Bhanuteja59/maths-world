@@ -1,7 +1,7 @@
 import React from "react";
 import "./style.css"; 
 
-function Loading() {
+function loading() {
   return (
     <div className="beginner-loading">
       <svg
@@ -99,4 +99,4 @@ function Loading() {
   );
 }
 
-export default Loading;
+export default loading;
