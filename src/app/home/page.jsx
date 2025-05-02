@@ -22,7 +22,7 @@ const Page = () => {
   }
 
   return (
-    <div className="container-fluid main">
+    <div className="container-fluid ">
 
       <Navbar />
       <HeroSection />

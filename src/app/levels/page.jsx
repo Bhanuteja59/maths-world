@@ -1,7 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import LevelCard from './LevelCard';
-import Loading from './Loading';
 import { motion } from 'framer-motion';
 import "./style.css"
 
