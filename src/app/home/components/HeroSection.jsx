@@ -31,19 +31,12 @@ function HeroSection() {
                 className="relative px-8 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold rounded-full hover:shadow-lg hover:shadow-yellow-400/40 transition-all duration-300 transform hover:scale-105 text-xl border-2 border-white/50"
               >
                 Start Learning
-                <span className="absolute -top-2 -right-2 bg-white text-orange-500 rounded-full w-8 h-8 flex items-center justify-center text-sm animate-bounce shadow-md">!</span>
               </Link>
-
-              {/* <Link 
-          href="/games" 
-          className="relative px-8 py-4 bg-gradient-to-r from-blue-400 to-purple-500 text-white font-bold rounded-full hover:shadow-lg hover:shadow-blue-400/40 transition-all duration-300 transform hover:scale-105 text-xl border-2 border-white/50"
-        >
-          Play Games
-        </Link> */}
+              
             </div>
           </div>
 
-          <div className="mt-16 animate-bounce-slow bg-white/20 p-4 rounded-full backdrop-blur-sm">
+          {/* <div className="mt-16 animate-bounce-slow bg-white/20 p-4 rounded-full backdrop-blur-sm">
             <svg className="w-24 h-24 mx-auto" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
               <circle cx="100" cy="100" r="90" fill="#F9A825" stroke="#FFF" strokeWidth="3" />
               <circle cx="70" cy="80" r="10" fill="#000" />
@@ -51,7 +44,7 @@ function HeroSection() {
               <path d="M70 130 Q100 150 130 130" stroke="#000" strokeWidth="5" fill="none" />
               <path d="M50 40 Q100 0 150 40" stroke="#000" strokeWidth="5" fill="none" />
             </svg>
-          </div>
+          </div> */}
         </div>
 
         <div className="absolute top-10 left-10 w-16 h-20 bg-red-500 rounded-full animate-float5 shadow-xl border-2 border-white/30"></div>

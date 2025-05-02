@@ -89,7 +89,7 @@ export default function QuizPage() {
   };
 
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     setTimeout(() => setLoading(false), 2000);
   }, []);
@@ -102,9 +102,10 @@ export default function QuizPage() {
     <div>
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div className="container">
-          <a className="navbar-brand fw-bold" href="#">🎲 Fun Math Quiz</a>
+        <div className="container flex justify-center items-center my-2 t-3">
+          <h3 className="font-bold text-white mt-2">Fun Math Quiz</h3>
         </div>
+
       </nav>
 
       {/* Main Quiz Section */}
