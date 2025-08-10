@@ -14,8 +14,6 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-
-  
   title: "Maths World",
   description: "Created by R.BhanuTeja",
 };
@@ -27,6 +25,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Google AdSense Auto Ads */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4924339114528326"
+          crossOrigin="anonymous"
+        ></script>
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
