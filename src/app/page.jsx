@@ -124,22 +124,9 @@ export default function Page() {
               href="/home"
               className="px-3 py-3 sm:px-8 sm:py-4 border-2 border-white/30 text-white font-semibold rounded-full hover:bg-white/10 transition-all duration-300 text-sm sm:text-base"
             >
-              🚀 Start Learning
-            </Link>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.1, duration: 0.5 }}
-          >
-            <Link
-              href="/started"
-              className="px-6 py-3 sm:px-8 sm:py-4 border-2 border-white/30 text-white font-semibold rounded-full hover:bg-white/10 transition-all duration-300 text-sm sm:text-base"
-            >
-              📘 Explore Topics
+              <button className='btn btn-success border-4 mb-2'>
+                🚀 Start Learning
+              </button>
             </Link>
           </motion.div>
         </div>

@@ -53,29 +53,6 @@ function Footer() {
               </h3>
 
               <div className="flex space-x-6 p-4">
-                {/* GitHub */}
-                <a
-                  href="https://github.com/Bhanuteja59"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-amber-800 hover:text-amber-600 transition-colors duration-300"
-                  aria-label="GitHub"
-                >
-                  <div className="relative group">
-                    <div className="relative bg-amber-100 p-3 rounded-lg flex items-center justify-center w-12 h-12 border border-amber-200 hover:border-amber-300 transition-all">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="w-6 h-6"
-                      >
-                        <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.167 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.865-.014-1.698-2.782.603-3.369-1.34-3.369-1.34-.454-1.155-1.109-1.463-1.109-1.463-.906-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.891 1.528 2.34 1.087 2.91.831.091-.647.349-1.087.635-1.338-2.222-.253-4.555-1.111-4.555-4.943 0-1.091.39-1.985 1.029-2.683-.103-.253-.446-1.274.098-2.656 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0 1 12 6.843a9.51 9.51 0 0 1 2.5.338c1.91-1.294 2.75-1.025 2.75-1.025.544 1.382.201 2.403.098 2.656.64.698 1.029 1.592 1.029 2.683 0 3.842-2.336 4.687-4.564 4.935.359.31.678.923.678 1.86 0 1.344-.012 2.428-.012 2.757 0 .268.18.577.688.48C19.135 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
-                      </svg>
-                    </div>
-                  </div>
-                </a>
 
                 {/* LinkedIn */}
                 <a
@@ -101,30 +78,6 @@ function Footer() {
                   </div>
                 </a>
 
-                {/* Portfolio */}
-                <a
-                  href="https://bhanuteja59.github.io/portfolio/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-amber-800 hover:text-amber-600 transition-colors duration-300"
-                  aria-label="Portfolio"
-                >
-                  <div className="relative group">
-                    <div className="relative bg-amber-100 p-3 rounded-lg flex items-center justify-center w-12 h-12 border border-amber-200 hover:border-amber-300 transition-all">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="w-6 h-6"
-                      >
-                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm6 17.5H6c-.276 0-.5-.224-.5-.5V7c0-.276.224-.5.5-.5h12c.276 0 .5.224.5.5v10c0 .276-.224.5-.5.5zm-1.5-9.5h-9v8h9v-8zM9 11h6v2H9v-2z" />
-                      </svg>
-                    </div>
-                  </div>
-                </a>
-
                 {/* Gmail */}
                 <a
                   href="mailto:bhanutejareddy59@gmail.com"
@@ -142,6 +95,31 @@ function Footer() {
                         className="w-6 h-6"
                       >
                         <path d="M12 13.065L2 6.5v11c0 .827.673 1.5 1.5 1.5h17c.827 0 1.5-.673 1.5-1.5v-11l-10 6.565zM12 11L2 4h20l-10 7z" />
+                      </svg>
+                    </div>
+                  </div>
+                </a>
+
+
+                {/* Portfolio */}
+                <a
+                  href="https://portfolio-psi-lovat-40.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-800 hover:text-amber-600 transition-colors duration-300"
+                  aria-label="Portfolio"
+                >
+                  <div className="relative group">
+                    <div className="relative bg-amber-100 p-3 rounded-lg flex items-center justify-center w-12 h-12 border border-amber-200 hover:border-amber-300 transition-all">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="w-6 h-6"
+                      >
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm6 17.5H6c-.276 0-.5-.224-.5-.5V7c0-.276.224-.5.5-.5h12c.276 0 .5.224.5.5v10c0 .276-.224.5-.5.5zm-1.5-9.5h-9v8h9v-8zM9 11h6v2H9v-2z" />
                       </svg>
                     </div>
                   </div>

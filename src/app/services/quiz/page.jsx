@@ -140,6 +140,17 @@ export default function QuizPage() {
 
           {/* Sidebar - Instructions & Score */}
           <div className="col-md-4 mt-4">
+
+
+
+                        {/* Score Section */}
+            <div className="p-3 mt-3 bg-info text-white rounded shadow-sm">
+              <h4>🏆 Score: {score}</h4>
+            </div>
+            <br />
+
+
+
             {/* Instructions */}
             <div className="p-3 bg-warning rounded shadow-sm">
               <h4>📜 Instructions</h4>
@@ -152,22 +163,6 @@ export default function QuizPage() {
               </ul>
             </div>
 
-            {/* Score Section */}
-            <div className="p-3 mt-3 bg-info text-white rounded shadow-sm">
-              <h4>🏆 Score: {score}</h4>
-              <h5 className="mt-3">📜 Session History</h5>
-              <ul className="list-group">
-                {sessionHistory.map((entry, index) => (
-                  <li key={index} className={`list-group-item ${entry.isCorrect ? "text-success" : "text-danger"}`}>
-                    <strong>{entry.question}</strong>
-                    <br />
-                    Your Answer: {entry.userAnswer}
-                    <br />
-                    {entry.isCorrect ? "✅ Correct" : `❌ Correct Answer: ${entry.correctAnswer}`}
-                  </li>
-                ))}
-              </ul>
-            </div>
           </div>
         </div>
       </div>

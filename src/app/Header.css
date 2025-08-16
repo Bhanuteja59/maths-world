@@ -1,0 +1,45 @@
+/* Desktop navigation link */
+.nav-link-custom {
+  color: #4b5563;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  text-decoration: none;
+}
+
+.nav-link-custom:hover {
+  color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.nav-link-custom.active-link::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background-color: #2563eb;
+  border-radius: 2px;
+}
+
+/* Mobile navigation link */
+.mobile-nav-link {
+  display: block;
+  color: #4b5563;
+  padding: 0.5rem 0;
+  transition: all 0.2s ease-in-out;
+}
+
+.mobile-nav-link:hover {
+  color: #2563eb;
+  background-color: #eff6ff;
+  border-radius: 0.5rem;
+}
+
+.mobile-nav-link.active-link {
+  color: #2563eb;
+  text-decoration: underline;
+  font-weight: 600;
+}

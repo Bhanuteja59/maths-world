@@ -23,7 +23,7 @@ const DeveloperContact = () => {
               <img src="https://img.freepik.com/free-vector/hand-drawn-web-developers_23-2148819604.jpg" alt="Developer" className="rounded-full" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-800">Bhanu Teja</h3>
+              <h3 className="text-xl font-bold text-gray-800">R.Bhanu Teja</h3>
               <p className="text-gray-600">Full Stack Developer</p>
             </div>
           </div>
@@ -54,9 +54,9 @@ const DeveloperContact = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500">LinkedIn</p>
-                <a 
-                  href="https://www.linkedin.com/in/bhanuteja59/" 
-                  target="_blank" 
+                <a
+                  href="https://www.linkedin.com/in/bhanuteja59/"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
@@ -74,9 +74,9 @@ const DeveloperContact = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500">GitHub</p>
-                <a 
-                  href="https://github.com/Bhanuteja59" 
-                  target="_blank" 
+                <a
+                  href="https://github.com/Bhanuteja59"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
@@ -94,9 +94,9 @@ const DeveloperContact = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Portfolio</p>
-                <a 
-                  href="https://bhanuteja59.github.io/portfolio/" 
-                  target="_blank" 
+                <a
+                  href="https://portfolio-psi-lovat-40.vercel.app/"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
