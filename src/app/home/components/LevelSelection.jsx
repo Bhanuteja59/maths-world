@@ -7,22 +7,16 @@ const levels = [
     title: 'Beginner',
     desc: 'Start with the basics and build a strong foundation in math.',
     link: '/levels/beginners',
-    colorBg: 'blue-100',
-    colorBtn: 'blue-500',
   },
   {
     title: 'Intermediate',
     desc: 'Expand your knowledge with more challenging concepts and problems.',
     link: '/levels/intermediate',
-    colorBg: 'purple-100',
-    colorBtn: 'purple-500',
   },
   {
     title: 'Advanced',
     desc: 'Master complex topics and solve sophisticated mathematical problems.',
     link: '/levels/advanced',
-    colorBg: 'indigo-100',
-    colorBtn: 'indigo-500',
   },
 ];
 
@@ -93,7 +87,7 @@ function LevelSelection() {
                 <p className="text-gray-600 text-center mb-4">{level.desc}</p>
                 <Link href={level.link}>
                   <button
-                    className={`px-6 py-2 bg-${level.colorBtn} text-white rounded-full hover:bg-${level.colorBtn}-600 transition-all duration-300`}
+                    className={`px-6 py-2 text-white rounded-full transition-all duration-300 btn btn-success`}
                   >
                     Start Learning
                   </button>
