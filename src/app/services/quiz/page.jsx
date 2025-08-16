@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Loading from "./loading";
@@ -40,6 +41,11 @@ export default function QuizPage() {
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [showProgressBar, setShowProgressBar] = useState(false);
 
+  // ⭐ new states for stars + correct counter
+  const [correctCount, setCorrectCount] = useState(0);
+  const [stars, setStars] = useState(0);
+  const [showCongrats, setShowCongrats] = useState(false);
+
   useEffect(() => {
     let timer;
     if (feedback && feedback !== "⚠️ Enter a number!") {
@@ -77,6 +83,15 @@ export default function QuizPage() {
     if (isCorrect) {
       setFeedback("🎉 Correct!");
       setScore((prev) => prev + 10);
+
+      setCorrectCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount % 15 === 0) {
+          setStars((s) => s + 1);
+          setShowCongrats(true); // 🎉 show popup
+        }
+        return newCount;
+      });
     } else {
       setFeedback(`❌ Wrong! Correct Answer: ${currentQuestion.answer}`);
       setScore((prev) => prev - 5);
@@ -102,10 +117,9 @@ export default function QuizPage() {
     <div>
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div className="container flex justify-center items-center my-2 t-3">
+        <div className="container flex justify-center items-center my-2">
           <h3 className="font-bold text-white mt-2">Fun Math Quiz</h3>
         </div>
-
       </nav>
 
       {/* Main Quiz Section */}
@@ -117,7 +131,7 @@ export default function QuizPage() {
             <h3 className="fw-bold text-primary">{currentQuestion.question}</h3>
 
             <input
-              type="number"
+              type="text"
               className={`form-control mt-3 text-center ${feedback.includes("🎉") ? "border-success" : feedback.includes("❌") ? "border-danger" : ""}`}
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
@@ -138,36 +152,47 @@ export default function QuizPage() {
             )}
           </div>
 
-          {/* Sidebar - Instructions & Score */}
+          {/* Sidebar */}
           <div className="col-md-4 mt-4">
-
-
-
-                        {/* Score Section */}
+            {/* Score Section */}
             <div className="p-3 mt-3 bg-info text-white rounded shadow-sm">
               <h4>🏆 Score: {score}</h4>
+              <h5>⭐ Stars: {stars}</h5>
+              <small className="d-block">Every 15 correct answers = 1 star</small>
             </div>
             <br />
-
-
 
             {/* Instructions */}
             <div className="p-3 bg-warning rounded shadow-sm">
               <h4>📜 Instructions</h4>
               <ul className="list-unstyled">
                 <li>🧮 Solve the given math problem.</li>
-                <li>✅ If correct, you earn <b>+10</b> points.</li>
-                <li>❌ If wrong, you lose <b>-5</b> points.</li>
-                <li>⏳ New question appears automatically after <b>4 seconds</b>.</li>
-                <li>🎯 Try to get the highest score possible!</li>
+                <li>✅ Correct = <b>+10</b> points.</li>
+                <li>❌ Wrong = <b>-5</b> points.</li>
+                <li>⭐ Every 15 correct answers earns you 1 star!</li>
+                <li>⏳ New question in <b>4s</b> automatically.</li>
               </ul>
             </div>
-
           </div>
         </div>
       </div>
 
-      {/* Custom Styles */}
+      {/* Congratulations Modal */}
+      {showCongrats && (
+        <div className="modal d-block" tabIndex="-1" role="dialog" style={{ background: "rgba(0,0,0,0.6)" }}>
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content text-center p-4">
+              <h2 className="text-success">🎉 Congratulations! 🎉</h2>
+              <p className="mt-3">You earned a ⭐ for 15 correct answers!</p>
+              <button className="btn btn-success mt-3" onClick={() => setShowCongrats(false)}>
+                Continue Quiz
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Styles */}
       <style jsx>{`
         body {
           font-family: "Poppins", sans-serif;

@@ -44,10 +44,10 @@ function HeroSection() {
 
             <div className="flex flex-col sm:flex-row justify-center gap-6">
               <Link
-                href="/started"
+                href="/services/exercise"
                 className="relative px-8 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold rounded-full hover:shadow-lg hover:shadow-yellow-400/40 transition-all duration-300 transform hover:scale-105 text-xl border-2 border-white/50"
               >
-                Start Learning
+                Start Practicing 
               </Link>
             </div>
           </div>
