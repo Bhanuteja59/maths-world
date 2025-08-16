@@ -34,7 +34,7 @@ export default function AuthPage() {
         throw new Error(data?.message || "Request failed");
       }
       localStorage.setItem("jwt", data.token);
-      router.push("/profile");
+      router.push("/home");
     } catch (e) {
       setErr(e.message || "Something went wrong");
     } finally {

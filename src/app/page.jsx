@@ -121,10 +121,10 @@ export default function Page() {
             transition={{ delay: 0.9, duration: 0.5 }}
           >
             <Link
-              href="/home"
+              href="/registration"
               className="px-3 py-3 sm:px-8 sm:py-4 border-2 border-white/30 text-white font-semibold rounded-full hover:bg-white/10 transition-all duration-300 text-sm sm:text-base"
             >
-              <button className='btn btn-success border-4 mb-2'>
+              <button className='btn btn-success border-4 mb-1'>
                 🚀 Start Learning
               </button>
             </Link>
