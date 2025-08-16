@@ -1,5 +1,5 @@
         .auth-container {
-            min-height: 90vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -309,10 +309,22 @@
             .auth-content {
                 padding-left: 24px;
                 padding-right: 24px;
+
             }
 
             .auth-footer {
                 padding-left: 24px;
                 padding-right: 24px;
             }
+
+                    .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #9dc4ff 0%, #bfd8ff 100%);
+            position: relative;
+            overflow: hidden;
+        }
         }

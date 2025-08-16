@@ -1,10 +1,4 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-
-
-export default function Layout({ children }) {
-  return (
-    <div>
-      <main className="container mt-5">{children}</main>
-    </div>
-  );
+// frontend/src/app/registration/layout.jsx
+export default function RegistrationLayout({ children }) {
+  return <div className="min-h-screen">{children}</div>;
 }

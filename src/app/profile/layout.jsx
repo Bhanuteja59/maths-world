@@ -1,13 +1,9 @@
+import Header from "../Header";
 
-import Header from "../Header"
-
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body>
-        <Header />
-        {children}
-      </body>
-    </html>
-  );
+// frontend/src/app/profile/layout.jsx
+export default function ProfileLayout({ children }) {
+  return <div className="min-h-screen">
+    <Header />
+    {children}
+    </div>;
 }
