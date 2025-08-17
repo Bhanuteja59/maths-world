@@ -1,13 +1,11 @@
 "use client";
 
-// frontend/src/app/profile/page.jsx
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import Loading from "../loading";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function ProfilePage() {
   const router = useRouter();
