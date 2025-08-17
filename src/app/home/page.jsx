@@ -1,28 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Loading from './loading';
+import React from "react";
+import useAuth from "@/hooks/useAuth";
+import Loading from "../loading";
 
-import Navbar from "./components/Navbar";
-import HeroSection from "./components/HeroSection";
-import CustomerReview from "./components/CustomerReview";
-import Footer from "./components/Footer";
-import Services from "./components/Services";
-import LevelSelection from "./components/LevelSelection";
+import Navbar from "../components/Navbar";
+import HeroSection from "../components/HeroSection";
+import CustomerReview from "../components/CustomerReview";
+import Footer from "../components/Footer";
+import Services from "../components/Services";
+import LevelSelection from "../components/LevelSelection";
 
-const Page = () => {
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export default function HomePage() {
+  const { loading } = useAuth({ requireLogin: true });
 
-  useEffect(() => {
-    const timeout = setTimeout(() => setLoading(false), 2000);
-    return () => clearTimeout(timeout);
-  });
-  if (loading) {
-    return <Loading />;
-  }
+  if (loading) return <Loading message="Loading Home..." />;
 
   return (
     <div className="container-fluid">
@@ -34,6 +26,4 @@ const Page = () => {
       <Footer />
     </div>
   );
-};
-
-export default Page;
+}

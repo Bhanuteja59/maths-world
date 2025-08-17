@@ -2,34 +2,20 @@
 
 // frontend/src/app/profile/page.jsx
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import useAuth from "@/hooks/useAuth";
+import Loading from "../loading";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const params = useSearchParams();
+  const { token, loading } = useAuth({ requireLogin: true });
   const [user, setUser] = useState(null);
 
-  // If redirected from Google, capture token from query and persist it
   useEffect(() => {
-    const tokenFromQuery = params.get("token");
-    if (tokenFromQuery) {
-      localStorage.setItem("jwt", tokenFromQuery);
-      // Clean URL
-      router.replace("/profile");
-    }
-  }, [params, router]);
-
-  useEffect(() => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
-
-    if (!token) {
-      router.push("/registration");
-      return;
-    }
+    if (!token) return;
 
     let cancelled = false;
 
@@ -39,6 +25,7 @@ export default function ProfilePage() {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
+
         if (!cancelled) {
           if (data?.success && data?.user) {
             setUser(data.user);
@@ -59,9 +46,9 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [token, router]);
 
-  if (!user) return null; // show /profile/loading.jsx
+  if (loading || !user) return <Loading message="Loading Profile..." />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">

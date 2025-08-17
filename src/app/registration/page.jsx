@@ -1,19 +1,42 @@
 "use client";
 
-// frontend/src/app/registration/page.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./registration.css";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function AuthPage() {
   const router = useRouter();
-  const [mode, setMode] = useState("login"); // "login" | "signup"
+  const [mode, setMode] = useState("login");
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [googleDialog, setGoogleDialog] = useState(false);
+
+  // ✅ Check if user already has token
+  useEffect(() => {
+    const token = localStorage.getItem("jwt");
+    if (token) {
+      fetch(`${API_BASE}/auth/verify`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Invalid token");
+          return res.json();
+        })
+        .then(() => {
+          router.replace("/home");
+        })
+        .catch(() => {
+          localStorage.removeItem("jwt");
+          setCheckingAuth(false);
+        });
+    } else {
+      setCheckingAuth(false);
+    }
+  }, [router]);
 
   const handleChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -29,10 +52,12 @@ export default function AuthPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+
       const data = await res.json();
       if (!res.ok || !data?.token) {
         throw new Error(data?.message || "Request failed");
       }
+
       localStorage.setItem("jwt", data.token);
       router.push("/home");
     } catch (e) {
@@ -42,14 +67,26 @@ export default function AuthPage() {
     }
   };
 
+  // ✅ Show modal + redirect after short delay
   const handleGoogle = () => {
-    // Your backend /auth/google will redirect back to /profile?token=...
-    window.location.href = `${API_BASE}/auth/google`;
+    setGoogleDialog(true);
+    setTimeout(() => {
+      window.location.href = `${API_BASE}/auth/google`;
+    }, 1800); // 1.8s delay for user to see animation
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="spinner"></div>
+        <p className="ml-2">Checking session...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">
-      {/* OPTIONAL: keep using your registration.css background */}
+      {/* Background */}
       <div className="bg-blur-circle-1"></div>
       <div className="bg-blur-circle-2"></div>
       <div className="bg-blur-circle-3"></div>
@@ -75,9 +112,7 @@ export default function AuthPage() {
             {mode === "login" ? "Welcome Back" : "Create Account"}
           </h2>
           <p className="auth-subtitle">
-            {mode === "login"
-              ? "Log in to continue"
-              : "Sign up to get started"}
+            {mode === "login" ? "Log in to continue" : "Sign up to get started"}
           </p>
         </div>
 
@@ -139,11 +174,7 @@ export default function AuthPage() {
               />
             </div>
 
-            {err && (
-              <p className="text-red-600 text-sm mb-2">
-                {err}
-              </p>
-            )}
+            {err && <p className="text-red-600 text-sm mb-2">{err}</p>}
 
             <button
               type="submit"
@@ -151,8 +182,12 @@ export default function AuthPage() {
               className="auth-submit-btn"
             >
               {isLoading
-                ? (mode === "login" ? "Logging in..." : "Creating account...")
-                : (mode === "login" ? "Log In" : "Register")}
+                ? mode === "login"
+                  ? "Logging in..."
+                  : "Creating account..."
+                : mode === "login"
+                ? "Log In"
+                : "Register"}
             </button>
           </form>
         </div>
@@ -172,6 +207,16 @@ export default function AuthPage() {
           )}
         </div>
       </div>
+
+      {/* ✅ Google Dialog */}
+      {googleDialog && (
+        <div className="google-dialog-overlay">
+          <div className="google-dialog">
+            <div className="spinner"></div>
+            <p>Redirecting to Google…</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

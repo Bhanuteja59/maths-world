@@ -328,3 +328,57 @@
             overflow: hidden;
         }
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /* Fullscreen overlay */
+.google-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+/* Dialog card */
+.google-dialog {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  min-width: 240px;
+}
+
+/* Spinner animation */
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4285f4; /* Google blue */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
