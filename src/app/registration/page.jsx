@@ -1,219 +1,272 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FcGoogle } from "react-icons/fc";
 import { useRouter } from "next/navigation";
-import "./registration.css";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-export default function AuthPage() {
+export default function RegistrationPage() {
   const router = useRouter();
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState("signup"); // "signup" | "login"
   const [form, setForm] = useState({ username: "", email: "", password: "" });
-  const [isLoading, setIsLoading] = useState(false);
-  const [err, setErr] = useState("");
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [googleDialog, setGoogleDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
+  // ✅ Handle Google OAuth redirect with ?token
   useEffect(() => {
-    const token = localStorage.getItem("jwt");
-    if (!token) {
-      setCheckingAuth(false);
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      localStorage.setItem("jwt", token);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("token");
+      window.history.replaceState({}, document.title, url.toString());
+      handleSuccess();
+    }
+  }, []);
+
+  const handleChange = (e) => {
+    setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
+  };
+
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  async function handleAuth(e) {
+    e.preventDefault();
+    setErrorMsg("");
+
+    if (!validateEmail(form.email)) {
+      setErrorMsg("Please enter a valid email address.");
+      return;
+    }
+    if (mode === "signup" && (!form.username || form.username.trim().length < 2)) {
+      setErrorMsg("Please provide a valid username (at least 2 characters).");
       return;
     }
 
-    // verify token (now exists in backend)
-    fetch(`${API_BASE}/auth/verify`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Invalid token");
-        return res.json();
-      })
-      .then(() => router.replace("/home"))
-      .catch(() => {
-        localStorage.removeItem("jwt");
-        setCheckingAuth(false);
-      });
-  }, [router]);
-
-  const handleChange = (e) =>
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErr("");
-    setIsLoading(true);
+    setLoading(true);
     try {
-      const endpoint = mode === "login" ? "/login" : "/signup";
-      const res = await fetch(`${API_BASE}${endpoint}`, {
+      const endpoint =
+        mode === "signup" ? `${API_BASE}/user/signup` : `${API_BASE}/user/login`;
+
+      const payload =
+        mode === "signup"
+          ? { username: form.username.trim(), email: form.email.trim(), password: form.password }
+          : { email: form.email.trim(), password: form.password };
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      if (!res.ok || !data?.token) {
-        throw new Error(data?.message || "Request failed");
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const msg = data?.message || data?.error || `Server error (${res.status})`;
+        throw new Error(msg);
+      }
+
+      if (!data?.success || !data?.token) {
+        throw new Error(data?.message || "Authentication failed");
       }
 
       localStorage.setItem("jwt", data.token);
-      router.push("/home");
-    } catch (e) {
-      setErr(e.message || "Something went wrong");
+      if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+
+      handleSuccess();
+    } catch (err) {
+      setErrorMsg(err.message || "Auth error");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
+  }
+
+  // ✅ Success modal handler
+  const handleSuccess = () => {
+    setShowModal(true);
+    setTimeout(() => {
+      setShowModal(false);
+      router.push("/home");
+    }, 2000); // auto close after 2s
   };
 
   const handleGoogle = () => {
-    setGoogleDialog(true);
-    setTimeout(() => {
-      window.location.href = `${API_BASE}/auth/google`;
-    }, 1200);
+    window.location.href = `${API_BASE}/auth/google`;
   };
 
-  if (checkingAuth) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="spinner"></div>
-        <p className="ml-2">Checking session...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="auth-container">
-      <div className="bg-blur-circle-1"></div>
-      <div className="bg-blur-circle-2"></div>
-      <div className="bg-blur-circle-3"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 via-blue-100 to-purple-100 px-4">
+      <motion.div
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 relative"
+      >
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">
+            {mode === "signup" ? "🎉 Create Account" : "👋 Welcome Back"}
+          </h1>
+        </div>
 
-      <div className="auth-card">
-        <div className="auth-header">
-          <div className="auth-tabs">
-            <button
-              className={`auth-tab ${mode === "login" ? "active" : ""}`}
-              onClick={() => setMode("login")}
-            >
-              Login
-            </button>
-            <button
-              className={`auth-tab ${mode === "signup" ? "active" : ""}`}
-              onClick={() => setMode("signup")}
-            >
-              Register
-            </button>
+        <p className="text-gray-500 text-sm mb-6">
+          {mode === "signup"
+            ? "Sign up to track progress, earn stars ⭐ and unlock more fun."
+            : "Log in to continue your journey 🚀"}
+        </p>
+
+        {errorMsg && (
+          <div className="mb-4 text-sm text-red-700 bg-red-100 px-3 py-2 rounded-md">
+            {errorMsg}
           </div>
-          <h2 className="auth-title">
-            {mode === "login" ? "Welcome Back" : "Create Account"}
-          </h2>
-          <p className="auth-subtitle">
-            {mode === "login" ? "Log in to continue" : "Sign up to get started"}
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleAuth} className="space-y-4">
+          {mode === "signup" && (
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Username</label>
+              <input
+                name="username"
+                value={form.username}
+                onChange={handleChange}
+                placeholder="Your name"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Email</label>
+            <input
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Password</label>
+            <div className="relative">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={handleChange}
+                placeholder="At least 4 characters"
+                minLength={4}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="absolute right-3 top-3 text-sm text-gray-500"
+              >
+                {showPassword ? "🙈 Hide" : "👁 Show"}
+              </button>
+            </div>
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-500 text-white py-3 rounded-xl font-semibold shadow-md hover:bg-green-600 transition disabled:opacity-50"
+          >
+            {loading
+              ? mode === "signup"
+                ? "Creating..."
+                : "Signing in..."
+              : mode === "signup"
+                ? "Create Account"
+                : "Sign In"}
+          </motion.button>
+        </form>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-gray-200" />
+          <div className="text-sm text-gray-400">or</div>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+
+        {/* Switch between Signup/Login */}
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
+            {mode === "signup" ? "Already have an account?" : "Don't have an account?"}{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setMode((m) => (m === "signup" ? "login" : "signup"));
+                setErrorMsg("");
+              }}
+              className="text-green-600 font-medium hover:underline"
+            >
+              {mode === "signup" ? "Login" : "Sign up"}
+            </button>
           </p>
         </div>
 
-        <div className="social-login">
-          <button className="social-btn google-btn" onClick={handleGoogle}>
-            <img
-              src="https://img.icons8.com/color/512/google-logo.png"
-              alt="Google"
-              width={20}
-              height={20}
-            />
-            Continue with Google
-          </button>
-          <div className="divider">
-            <span>or</span>
-          </div>
-        </div>
 
-        <div className="auth-content">
-          <form onSubmit={handleSubmit}>
-            {mode === "signup" && (
-              <div className="mb-3">
-                <label className="form-label">Username</label>
-                <div className="input-with-icon">
-                  <span className="input-icon">👤</span>
-                  <input
-                    name="username"
-                    type="text"
-                    value={form.username}
-                    onChange={handleChange}
-                    className="input-with-icon-control"
-                    placeholder="Your name"
-                    required
-                  />
-                </div>
-              </div>
-            )}
-            <div className="mb-3">
-              <label className="form-label">Email</label>
-              <div className="input-with-icon">
-                <span className="input-icon">📧</span>
-                <input
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  className="input-with-icon-control"
-                  placeholder="you@example.com"
-                  required
-                />
-              </div>
-            </div>
-            <div className="mb-4">
-              <label className="form-label">Password</label>
-              <div className="input-with-icon">
-                <span className="input-icon">🔒</span>
-                <input
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  className="input-with-icon-control"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-            </div>
+        <br />
 
-            {err && <p className="text-red-600 text-sm mb-2">{err}</p>}
+        {/* Google Button */}
+        <button
+          onClick={handleGoogle}
+          className="w-full flex items-center justify-center gap-3 border border-gray-200 rounded-xl py-3 hover:bg-gray-50 transition"
+        >
+          <FcGoogle size={22} />
+          <span className="font-medium text-gray-700">
+            {mode === "signup" ? "Sign up with Google" : "Sign in with Google"}
+          </span>
+        </button>
+      </motion.div>
 
-            <button type="submit" disabled={isLoading} className="auth-submit-btn">
-              {isLoading
-                ? mode === "login"
-                  ? "Logging in..."
-                  : "Creating account..."
-                : mode === "login"
-                ? "Log In"
-                : "Register"}
-            </button>
-          </form>
-        </div>
-
-        <div className="auth-footer">
-          {mode === "login" ? (
-            <p>
-              Don&apos;t have an account?{" "}
-              <button onClick={() => setMode("signup")}>Register</button>
-            </p>
-          ) : (
-            <p>
-              Already have an account?{" "}
-              <button onClick={() => setMode("login")}>Log in</button>
-            </p>
-          )}
-        </div>
-      </div>
-
-      {googleDialog && (
-        <div className="google-dialog-overlay">
-          <div className="google-dialog">
-            <div className="spinner"></div>
-            <p>Redirecting to Google…</p>
-          </div>
-        </div>
-      )}
+      {/* ✅ Success Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-2xl shadow-2xl p-8 text-center max-w-sm w-full"
+            >
+              <h2 className="text-2xl font-bold text-green-600 mb-2">🎉 Success!</h2>
+              <p className="text-gray-600 mb-4">
+                {mode === "signup"
+                  ? "Your account has been created ✨"
+                  : "You are now logged in 🚀"}
+              </p>
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
+                className="text-4xl"
+              >
+                🌟
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

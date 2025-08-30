@@ -10,9 +10,9 @@ export default function Header() {
 
   const navItems = [
     { name: "Home", href: "/home", icon: "🏠" },
-    { name: "Practice", href: "/services/exercise", icon: "✏️" },
+    { name: "Exercise", href: "/services/exercise", icon: "✏️" },
     { name: "Quiz", href: "/services/quiz", icon: "🧠" },
-    { name: "Profile", href: "/profile", icon: "👤" },
+    { name: "Profile", href: "/dashboard", icon: "👤" },
   ];
 
   return (

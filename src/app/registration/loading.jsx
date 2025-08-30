@@ -1,12 +1,18 @@
-// frontend/src/app/registration/loading.jsx
-export default function RegistrationLoading() {
+import React from "react";
+import "./loading.css";
+
+function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-200">
-      <div className="flex space-x-2">
-        <span className="w-4 h-4 bg-blue-600 rounded-full animate-bounce"></span>
-        <span className="w-4 h-4 bg-blue-600 rounded-full animate-bounce [animation-delay:-.15s]"></span>
-        <span className="w-4 h-4 bg-blue-600 rounded-full animate-bounce [animation-delay:-.3s]"></span>
-      </div>
+    <div>
+      <section className="loader">
+        <div className="slider" style={{ "--i": 0 }}></div>
+        <div className="slider" style={{ "--i": 1 }}></div>
+        <div className="slider" style={{ "--i": 2 }}></div>
+        <div className="slider" style={{ "--i": 3 }}></div>
+        <div className="slider" style={{ "--i": 4 }}></div>
+      </section>
     </div>
   );
 }
+
+export default Loading;

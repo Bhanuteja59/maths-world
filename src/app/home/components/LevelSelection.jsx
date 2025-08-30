@@ -1,122 +1,90 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { GiStarsStack, GiPartyPopper } from 'react-icons/gi';
 
 const levels = [
   {
     title: 'Beginner',
     desc: 'Start with the basics and build a strong foundation in math.',
-    link: '/levels/beginners',
+    link: '/services/exercise/easy',
+    color: 'from-green-300 to-green-500',
   },
   {
     title: 'Intermediate',
     desc: 'Expand your knowledge with more challenging concepts and problems.',
-    link: '/levels/intermediate',
+    link: '/services/exercise/intermediate',
+    color: 'from-yellow-300 to-yellow-500',
   },
   {
     title: 'Advanced',
     desc: 'Master complex topics and solve sophisticated mathematical problems.',
-    link: '/levels/advanced',
+    link: '/services/exercise/advanced',
+    color: 'from-red-300 to-red-500',
   },
 ];
 
 function LevelSelection() {
   return (
-    <div>
-      <section
-        className="relative py-28 bg-gradient-to-b from-blue-50 to-indigo-50 overflow-hidden"
-        id="levels"
+    <div className="min-h-screen relative bg-gradient-to-b from-blue-50 to-purple-50 overflow-hidden flex flex-col items-center py-20">
+      
+      {/* Floating playful shapes */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-10 left-10 w-36 h-36 bg-pink-300 rounded-full filter blur-3xl opacity-40 animate-float"></div>
+        <div className="absolute top-1/2 right-20 w-48 h-48 bg-yellow-300 rounded-full filter blur-3xl opacity-35 animate-float animation-delay-1500"></div>
+        <div className="absolute bottom-10 left-24 w-28 h-28 bg-green-300 rounded-full filter blur-2xl opacity-30 animate-float animation-delay-500"></div>
+      </div>
+
+      {/* Heading */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-16 px-6"
       >
-        {/* Background floating shapes */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-20 w-40 h-40 bg-blue-300 rounded-full filter blur-3xl opacity-30 animate-float"></div>
-          <div className="absolute bottom-20 right-20 w-40 h-40 bg-purple-300 rounded-full filter blur-3xl opacity-30 animate-float animation-delay-2000"></div>
-        </div>
+        <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 mb-4">
+          Choose Your{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+            Math Level
+          </span>{' '}
+          <GiPartyPopper className="inline-block ml-2 animate-bounce" />
+        </h1>
+        <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto">
+          Learn with fun colors, playful animations, and engaging challenges!
+        </p>
+      </motion.div>
 
-        {/* Top wave */}
-        <div className="absolute top-0 left-0 w-full overflow-hidden">
-          <svg viewBox="0 0 1200 120" className="w-full h-24">
-            <path
-              d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-              opacity=".25"
-              className="fill-current text-blue-100"
-            />
-            <path
-              d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
-              opacity=".5"
-              className="fill-current text-blue-100"
-            />
-            <path
-              d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
-              className="fill-current text-blue-100"
-            />
-          </svg>
-        </div>
-
-        {/* Container */}
-        <div className="container mx-auto px-6 relative z-10">
-          {/* Heading */}
+      {/* Level Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto px-6">
+        {levels.map((level, i) => (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
+            key={i}
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+            className={`bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center justify-between border-4 border-transparent hover:border-purple-400 transition-all duration-300`}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-              Choose Your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                Math Level
-              </span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Start your learning journey at the perfect difficulty
-            </p>
-          </motion.div>
-
-          {/* Level Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {levels.map((level) => (
-              <motion.div
-                key={level.title}
-                className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all duration-300 ease-in-out"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.3 }}
+            <div
+              className={`w-28 h-28 rounded-full mb-6 bg-gradient-to-br ${level.color} flex items-center justify-center shadow-lg`}
+            >
+              <h3 className="text-3xl font-bold text-white">{level.title[0]}</h3>
+            </div>
+            <p className="text-center text-gray-700 mb-6 text-lg">{level.desc}</p>
+            <Link href={level.link}>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className={`px-6 py-3 text-white rounded-full bg-gradient-to-r ${level.color} font-bold shadow-lg text-lg`}
               >
-                <div className={`bg-${level.colorBg} p-4 rounded-full mb-4`}>
-                  <h3 className="text-2xl text-gray-800 font-bold">{level.title}</h3>
-                </div>
-                <p className="text-gray-600 text-center mb-4">{level.desc}</p>
-                <Link href={level.link}>
-                  <button
-                    className={`px-6 py-2 text-white rounded-full transition-all duration-300 btn btn-success`}
-                  >
-                    Start Learning
-                  </button>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+                <GiStarsStack className="inline-block mr-2 animate-spin-slow" />
+                Start Learning
+              </motion.button>
+            </Link>
+          </motion.div>
+        ))}
+      </div>
 
-        {/* Bottom wave */}
-        <div className="absolute bottom-0 left-0 w-full rotate-180">
-          <svg viewBox="0 0 1200 120" className="w-full h-24">
-            <path
-              d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-              opacity=".25"
-              className="fill-current text-blue-100"
-            />
-            <path
-              d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
-              opacity=".5"
-              className="fill-current text-blue-100"
-            />
-            <path
-              d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
-              className="fill-current text-blue-100"
-            />
-          </svg>
-        </div>
-      </section>
+      {/* Floating confetti elements for fun */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full bg-yellow-200 opacity-20 animate-spin-slow pointer-events-none"></div>
+      <div className="absolute bottom-0 right-1/4 w-60 h-60 rounded-full bg-pink-200 opacity-25 animate-spin-slow pointer-events-none"></div>
     </div>
   );
 }
