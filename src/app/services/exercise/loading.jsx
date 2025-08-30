@@ -1,10 +1,12 @@
+"use client"
+
 import React from 'react'
 import "./style.css"
 
 function loading() {
   return (
     <div>
-<div class="loader">
+<div className="loader">
   <div>
     <ul>
       <li>

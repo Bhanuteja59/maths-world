@@ -8,6 +8,8 @@ import { GiStarsStack } from "react-icons/gi";
 import { AiOutlineCheckCircle } from "react-icons/ai";
 import Loading from "../loading";
 
+
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Generate easy math problem

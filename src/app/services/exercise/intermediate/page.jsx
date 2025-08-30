@@ -8,7 +8,9 @@ import { GiStarsStack } from "react-icons/gi";
 import { AiOutlineCheckCircle } from "react-icons/ai";
 import Loading from "../loading";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Hugging Face API
+const HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
+const HF_TOKEN = process.env.NEXT_PUBLIC_HF_TOKEN;
 
 // Generate intermediate math problem
 const generateIntermediateProblem = () => {
@@ -16,7 +18,7 @@ const generateIntermediateProblem = () => {
     {
       name: "Addition",
       generate: () => {
-        const a = Math.floor(Math.random() * 90) + 10; // 10 - 99
+        const a = Math.floor(Math.random() * 90) + 10;
         const b = Math.floor(Math.random() * 90) + 10;
         return { question: `${a} + ${b}`, answer: a + b };
       },
@@ -24,7 +26,7 @@ const generateIntermediateProblem = () => {
     {
       name: "Subtraction",
       generate: () => {
-        const a = Math.floor(Math.random() * 90) + 20; // ensure positive result
+        const a = Math.floor(Math.random() * 90) + 20;
         const b = Math.floor(Math.random() * 20) + 1;
         return { question: `${a} - ${b}`, answer: a - b };
       },
@@ -32,7 +34,7 @@ const generateIntermediateProblem = () => {
     {
       name: "Multiplication",
       generate: () => {
-        const a = Math.floor(Math.random() * 12) + 2; // 2 - 13
+        const a = Math.floor(Math.random() * 12) + 2;
         const b = Math.floor(Math.random() * 12) + 2;
         return { question: `${a} × ${b}`, answer: a * b };
       },
@@ -52,6 +54,36 @@ const generateIntermediateProblem = () => {
   return { ...op.generate(), operation: op.name };
 };
 
+// Ask Hugging Face AI for kid-friendly explanation
+async function askHF(problem, userAnswer, correct) {
+  try {
+    const res = await fetch(HF_API_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${HF_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "deepseek-ai/DeepSeek-V3.1",
+        messages: [
+          {
+            role: "user",
+            content: `Explain this math problem to a child in very simple words with a short example: 
+              Problem: ${problem.question}, Correct Answer: ${problem.answer}, 
+              Child's Answer: ${userAnswer}, Was it correct? ${correct}`,
+          },
+        ],
+      }),
+    });
+
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || "I’m still learning 🤖";
+  } catch (err) {
+    console.error("HF call failed:", err);
+    return "Error fetching AI answer.";
+  }
+}
+
 export default function IntermediatePage() {
   const router = useRouter();
 
@@ -63,6 +95,8 @@ export default function IntermediatePage() {
   const [totalCorrect, setTotalCorrect] = useState(0);
   const [totalProblems, setTotalProblems] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [aiMessage, setAiMessage] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     generateNewProblem();
@@ -73,13 +107,14 @@ export default function IntermediatePage() {
     setAnswer("");
     setFeedback("");
     setIsCorrect(false);
+    setAiMessage("");
   };
 
   const saveStars = async (newStars) => {
     try {
       const token = localStorage.getItem("jwt");
       if (!token) return;
-      await fetch(`${API_URL}/user/score`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/score`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ difficulty: "medium", score: newStars, label: "Intermediate Level" }),
@@ -89,7 +124,7 @@ export default function IntermediatePage() {
     }
   };
 
-  const checkAnswer = () => {
+  const checkAnswer = async () => {
     if (answer === "") return;
 
     const correct = parseInt(answer) === problem.answer;
@@ -102,7 +137,6 @@ export default function IntermediatePage() {
       const newTotalCorrect = totalCorrect + 1;
       setTotalCorrect(newTotalCorrect);
 
-      // Update stars every 20 correct answers
       const newStars = Math.floor(newTotalCorrect / 20);
       if (newStars > stars) {
         setStars(newStars);
@@ -114,12 +148,24 @@ export default function IntermediatePage() {
         setTimeout(() => setShowConfetti(false), 3000);
       }
 
-      // Auto-load next problem after 1.5s
-      setTimeout(() => generateNewProblem(), 1500);
+      // Load AI explanation
+      setAiLoading(true);
+      const msg = await askHF(problem, answer, true);
+      setAiMessage(msg);
+      setAiLoading(false);
+
+      setTimeout(() => generateNewProblem(), 3000);
     } else {
       setFeedback(`❌ Oops! Correct answer is ${problem.answer}`);
       setIsCorrect(false);
-      setTimeout(() => generateNewProblem(), 2000);
+
+      // Load AI explanation
+      setAiLoading(true);
+      const msg = await askHF(problem, answer, false);
+      setAiMessage(msg);
+      setAiLoading(false);
+
+      setTimeout(() => generateNewProblem(), 4000);
     }
   };
 
@@ -133,7 +179,26 @@ export default function IntermediatePage() {
     <div className="min-h-screen bg-gradient-to-tr from-purple-100 via-pink-100 to-yellow-100 p-4 md:p-8 font-sans">
       {showConfetti && <Confetti recycle={false} numberOfPieces={300} />}
 
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* AI Helper card (always left, fixed width) */}
+        <div className="bg-white rounded-3xl shadow-2xl p-6 border-4 border-blue-300 md:col-span-1 flex flex-col">
+          <h2 className="text-2xl font-extrabold text-purple-700 mb-4">🤖 Robot Helper</h2>
+
+          {aiLoading ? (
+            <motion.div
+              animate={{ rotate: [0, 20, -20, 0] }}
+              transition={{ repeat: Infinity, duration: 1 }}
+              className="text-6xl text-yellow-500 text-center mb-4"
+            >
+              🤖
+            </motion.div>
+          ) : (
+            <p className="text-md text-gray-700 bg-yellow-50 p-3 rounded-xl max-h-64 overflow-y-auto">
+              {aiMessage || "Solve a problem to get my tips!"}
+            </p>
+          )}
+        </div>
+
         {/* Problem card */}
         <div className="md:col-span-2 bg-white rounded-3xl shadow-2xl p-6 border-4 border-purple-300">
           <h1 className="text-4xl font-extrabold text-center text-blue-800 mb-4">
@@ -189,22 +254,23 @@ export default function IntermediatePage() {
                 ✅ Check Answer
               </motion.button>
             )}
-                      <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              generateNewProblem();
-              setAnswer("");
-            }}
-            className="bg-purple-500 hover:bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg mt-4 text-lg"
-          >
-            🔄 Skip Question 
-          </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                generateNewProblem();
+                setAnswer("");
+              }}
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg mt-4 text-lg"
+            >
+              🔄 Skip Question
+            </motion.button>
           </div>
         </div>
 
         {/* Score card */}
-        <div className="bg-white rounded-3xl shadow-2xl p-6 border-4 border-yellow-300 flex flex-col gap-6 justify-center">
+        <div className="bg-white rounded-3xl shadow-2xl p-6 border-4 border-yellow-300 flex flex-col gap-6 justify-center md:col-span-1">
           <div className="text-center bg-yellow-100 rounded-xl p-4 shadow-inner">
             <h3 className="text-xl font-bold text-purple-700 flex items-center justify-center gap-2">
               <GiStarsStack size={32} /> Stars
@@ -219,7 +285,6 @@ export default function IntermediatePage() {
             </h3>
             <p className="text-4xl font-extrabold text-red-500">{totalCorrect}</p>
           </div>
-
         </div>
       </div>
     </div>
