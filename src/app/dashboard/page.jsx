@@ -72,9 +72,7 @@ export default function DashboardPage() {
           <p className="text-gray-500">{user.email}</p>
 
           <div className="mt-6 w-full">
-            <h2 className="text-lg font-semibold text-gray-700 mb-2">
-              Best Scores
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">Best Scores</h2>
             {["easy", "medium", "hard"].map((lvl) => (
               <div key={lvl} className="mb-3">
                 <div className="flex justify-between text-sm text-gray-600 mb-1">
@@ -116,60 +114,46 @@ export default function DashboardPage() {
             Play more quizzes to earn more stars and improve your scores!
           </p>
 
-          {/* Recent History */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">
-              Recent Activity
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">Recent Activity</h3>
             <ul className="space-y-3 max-h-48 overflow-y-auto pr-2">
               {history.length > 0 ? (
-                history
-                  .slice(-5) // show last 5
-                  .reverse()
-                  .map((entry, idx) => (
-                    <li
-                      key={idx}
-                      className="p-3 bg-gray-50 rounded-lg border flex justify-between items-center"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">
-                          {entry.label || "Quiz Attempt"}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {entry.difficulty} •{" "}
-                          {new Date(entry.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <span className="text-green-600 font-bold">
-                        +{entry.value}
-                      </span>
-                    </li>
-                  ))
+                history.slice(-5).reverse().map((entry, idx) => (
+                  <li
+                    key={idx}
+                    className="p-3 bg-gray-50 rounded-lg border flex justify-between items-center"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">
+                        {entry.label || "Quiz Attempt"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {entry.difficulty} • {new Date(entry.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span className="text-green-600 font-bold">+{entry.value}</span>
+                  </li>
+                ))
               ) : (
                 <p className="text-gray-500 text-sm">No history yet.</p>
               )}
             </ul>
           </div>
 
-          {/* Stars / Achievements */}
           <div className="mt-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">
-              Stars & Achievements
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">Stars & Achievements</h3>
             <div className="flex gap-2 flex-wrap">
-              {[...Array(user.stars || Math.floor(history.length / 10))].map(
-                (_, idx) => (
-                  <motion.span
-                    key={idx}
-                    className="text-yellow-400 text-2xl"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: idx * 0.1 }}
-                  >
-                    ★
-                  </motion.span>
-                )
-              )}
+              {[...Array(user.stars || Math.floor(history.length / 10))].map((_, idx) => (
+                <motion.span
+                  key={idx}
+                  className="text-yellow-400 text-2xl"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  ★
+                </motion.span>
+              ))}
               {[...Array(Math.max(0, 5 - (user.stars || Math.floor(history.length / 10))))].map(
                 (_, idx) => (
                   <span key={idx} className="text-gray-300 text-2xl">
@@ -178,6 +162,16 @@ export default function DashboardPage() {
                 )
               )}
             </div>
+          </div>
+
+          {/* Profile Link */}
+          <div className="mt-6 text-center">
+            <Link
+              href="/profile"
+              className="inline-block px-6 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow hover:scale-105 transition-transform"
+            >
+              View Full Profile
+            </Link>
           </div>
         </div>
       </motion.div>
