@@ -12,23 +12,35 @@ export default function RegistrationPage() {
   const [mode, setMode] = useState("signup"); // "signup" | "login"
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [checkingToken, setCheckingToken] = useState(true); // ✅ for JWT check
   const [errorMsg, setErrorMsg] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  // ✅ Handle Google OAuth redirect with ?token
+  // ✅ Check if user already has token in localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
+
+    const token = localStorage.getItem("jwt");
     if (token) {
-      localStorage.setItem("jwt", token);
+      router.replace("/home");
+      return;
+    }
+
+    // ✅ Handle Google OAuth redirect with ?token
+    const params = new URLSearchParams(window.location.search);
+    const oauthToken = params.get("token");
+    if (oauthToken) {
+      localStorage.setItem("jwt", oauthToken);
       const url = new URL(window.location.href);
       url.searchParams.delete("token");
       window.history.replaceState({}, document.title, url.toString());
       handleSuccess();
+      return;
     }
-  }, []);
+
+    setCheckingToken(false); // ✅ Done checking
+  }, [router]);
 
   const handleChange = (e) => {
     setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
@@ -95,12 +107,25 @@ export default function RegistrationPage() {
     setTimeout(() => {
       setShowModal(false);
       router.push("/home");
-    }, 2000); // auto close after 2s
+    }, 1500); // auto close after 1.5s
   };
 
   const handleGoogle = () => {
     window.location.href = `${API_BASE}/auth/google`;
   };
+
+  // ✅ Show loading screen while checking token
+  if (checkingToken) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 via-blue-100 to-purple-100">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 via-blue-100 to-purple-100 px-4">
@@ -190,8 +215,8 @@ export default function RegistrationPage() {
                 ? "Creating..."
                 : "Signing in..."
               : mode === "signup"
-                ? "Create Account"
-                : "Sign In"}
+              ? "Create Account"
+              : "Sign In"}
           </motion.button>
         </form>
 
@@ -218,7 +243,6 @@ export default function RegistrationPage() {
             </button>
           </p>
         </div>
-
 
         <br />
 
