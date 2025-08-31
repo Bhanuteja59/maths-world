@@ -3,8 +3,6 @@ import { Inter, Roboto_Mono } from "next/font/google"; // Use valid Google Fonts
 import "./globals.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import ChatBot from "./chatbot"
-
 // Define font variables
 const inter = Inter({
   variable: "--font-inter",
@@ -38,7 +36,6 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${robotoMono.variable} antialiased`}>
         {children}
-        <ChatBot />
       </body>
     </html>
   );

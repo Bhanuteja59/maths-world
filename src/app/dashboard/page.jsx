@@ -164,15 +164,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Profile Link */}
-          <div className="mt-6 text-center">
-            <Link
-              href="/profile"
-              className="inline-block px-6 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow hover:scale-105 transition-transform"
-            >
-              View Full Profile
-            </Link>
-          </div>
         </div>
       </motion.div>
 

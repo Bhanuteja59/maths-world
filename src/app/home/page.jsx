@@ -13,6 +13,15 @@ import Services from "./components/Services";
 import LevelSelection from "./components/LevelSelection";
 
 const Page = () => {
+
+  useEffect(() => {
+  if (!sessionStorage.getItem("reloaded")) {
+    sessionStorage.setItem("reloaded", "true");
+    window.location.reload();
+  }
+}, []);
+
+
   const socialLinks = [
     {
       label: "LinkedIn",
