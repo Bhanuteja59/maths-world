@@ -1,60 +1,89 @@
 "use client";
-
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
 const HF_TOKEN = process.env.NEXT_PUBLIC_HF_TOKEN;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-export default function ChatBot({ initiallyOpen = false }) {
-  const [open, setOpen] = useState(initiallyOpen);
-  const [messages, setMessages] = useState(() => [
-    {
-      id: `sys-1`,
-      role: "assistant",
-      content: "👋 Hi! I'm Mr. Math — your fun math teacher! I explain math in simple steps. Try a problem or ask me anything!",
-      ts: Date.now(),
-    },
-  ]);
-  const [thinking, setThinking] = useState(false);
+export default function AdaptiveTeacherBot() {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
   const [typingText, setTypingText] = useState("");
-  const abortRef = useRef(null);
+  const [thinking, setThinking] = useState(false);
+  const [user, setUser] = useState(null);
   const messagesEndRef = useRef(null);
   const typingIntervalRef = useRef(null);
 
-  // Auto-scroll to bottom when new messages appear
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, thinking, typingText]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // ✅ Fetch user info on load
+  const fetchUser = async () => {
+    const token = localStorage.getItem("jwt");
+    if (!token) return null;
+    try {
+      const res = await fetch(`${API_BASE}/user/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.user;
+    } catch {
+      return null;
+    }
   };
 
   useEffect(() => {
-    return () => {
-      if (typingIntervalRef.current) {
-        clearInterval(typingIntervalRef.current);
+    const init = async () => {
+      const userData = await fetchUser();
+      setUser(userData);
+
+      if (!userData) {
+        pushMessage(
+          "assistant",
+          <div className="flex flex-col gap-2">
+            <span>🔒 You must log in to unlock the Teacher.</span>
+            <a
+              href="/register"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-center"
+            >
+              👉 Register / Login
+            </a>
+          </div>
+        );
+      } else {
+        pushMessage(
+          "assistant",
+          `👋 Hi ${userData.username}! I'm your Maths Teacher. Let's improve together!`
+        );
+
+        // Suggest next problem dynamically
+        const suggestion = dynamicSuggestion(userData);
+        pushMessage("assistant", suggestion);
       }
     };
+    init();
   }, []);
 
-  // Helper: append message locally
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, typingText]);
+
+  useEffect(() => {
+    const handleStorage = () => window.location.reload();
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
   const pushMessage = (role, content) => {
     const msg = { id: `${role}-${Date.now()}`, role, content, ts: Date.now() };
     setMessages((m) => [...m, msg].slice(-100));
     return msg;
   };
 
-  // Simulate typing effect
   const simulateTyping = (text, callback) => {
-    if (typingIntervalRef.current) {
-      clearInterval(typingIntervalRef.current);
-    }
-    
+    if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
     let index = 0;
     setTypingText("");
-    
     typingIntervalRef.current = setInterval(() => {
       if (index < text.length) {
         setTypingText((prev) => prev + text.charAt(index));
@@ -66,11 +95,49 @@ export default function ChatBot({ initiallyOpen = false }) {
     }, 20);
   };
 
-  // Build messages for HF request
+  const localReply = (text) => {
+    const lower = text.toLowerCase();
+    if (["hi", "hello", "hey"].some((g) => lower.includes(g))) {
+      return `Hello ${user?.username || ""}! 👋 How are you today?`;
+    }
+    if (lower.includes("bye")) return "Goodbye 👋 Have a nice day!";
+    return null;
+  };
+
+  // ✅ Generate dynamic suggestion based on scores
+  const dynamicSuggestion = (userData) => {
+    const avgScore =
+      ((userData.scores?.easy || 0) +
+        (userData.scores?.medium || 0) +
+        (userData.scores?.hard || 0)) /
+      3;
+
+    if (avgScore < 40) return "🎯 Try a new easy addition problem!";
+    if (avgScore < 70) return "💪 Let's tackle a medium subtraction challenge.";
+    return "🚀 You’re doing great! How about a hard multiplication problem?";
+  };
+
   const buildPayloadMessages = (extraUserPrompt) => {
+    const avgScore =
+      ((user?.scores?.easy || 0) +
+        (user?.scores?.medium || 0) +
+        (user?.scores?.hard || 0)) /
+      3;
+
+    const difficultyHint =
+      avgScore < 50
+        ? "Use very simple examples (apples, candies)."
+        : avgScore < 80
+        ? "Use medium-level examples."
+        : "Use challenging examples, step by step.";
+
     const system = {
       role: "system",
-      content: "You are a fun math teacher for 5th grade students. Use very simple words and short sentences. Explain concepts step by step. Always be positive and encouraging. If the student is wrong, gently show where they went wrong. Use examples with apples, candies, or toys. Keep explanations under 4 sentences.",
+      content: `You are a friendly maths teacher for a logged-in user.
+- Personalize the chat using the username.
+- Adjust examples based on their average score.
+- Explain math step by step, max 5 lines, use bullets if needed.
+- ${difficultyHint}`,
     };
 
     const recent = messages
@@ -83,22 +150,35 @@ export default function ChatBot({ initiallyOpen = false }) {
     return [system, ...recent];
   };
 
-  // Core: send ask to Hugging Face router
-  async function askHF(extraUserPrompt) {
-    setThinking(true);
+  const askHF = async (extraUserPrompt) => {
+    if (!HF_TOKEN) {
+      pushMessage(
+        "assistant",
+        <div className="flex flex-col gap-2">
+          <span>🔒 API not configured. Login to use Teacher chat.</span>
+          <a
+            href="/register"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-center"
+          >
+            👉 Register / Login
+          </a>
+        </div>
+      );
+      return;
+    }
 
+    setThinking(true);
     const placeholder = pushMessage("assistant", "");
 
     const payloadMessages = buildPayloadMessages(extraUserPrompt);
-
     const body = {
       model: "deepseek-ai/DeepSeek-V3.1",
       messages: payloadMessages,
-      temperature: 0.3,
-      max_tokens: 150, // Keep responses short
+      temperature: 0.4,
+      max_tokens: 150,
     };
 
-    let finalText = "🤔 Hmm, let me think about that...";
+    let finalText = "🤔 Let me think...";
 
     try {
       const res = await fetch(HF_API_URL, {
@@ -112,321 +192,143 @@ export default function ChatBot({ initiallyOpen = false }) {
 
       if (res.ok) {
         const data = await res.json();
-        finalText = data?.choices?.[0]?.message?.content || "I'm not sure about that. Can you ask in a different way?";
+        finalText =
+          data?.choices?.[0]?.message?.content ||
+          "I'm not sure. Can you ask differently?";
       }
     } catch (err) {
       console.error("HF fetch error", err);
-      finalText = "Oops! My brain is taking a quick nap. Try again in a moment!";
+      finalText = "Oops! Something went wrong. Please try again.";
     }
 
     setThinking(false);
-    
-    // Simulate typing for the response
+
     simulateTyping(finalText, () => {
       setMessages((prev) =>
-        prev
-          .map((m) => (m.id === placeholder.id ? { ...m, content: finalText } : m))
-          .slice(-100)
+        prev.map((m) =>
+          m.id === placeholder.id ? { ...m, content: finalText } : m
+        )
       );
       setTypingText("");
     });
-  }
-
-  // Listen for global math answer events
-  useEffect(() => {
-    function onMathAnswer(e) {
-      try {
-        const detail = e.detail || {};
-        const problem = detail.problem || null;
-        const userAnswer = "userAnswer" in detail ? detail.userAnswer : detail.answer ?? null;
-
-        if (!problem || userAnswer === null || userAnswer === undefined) return;
-
-        pushMessage("user", `I answered: ${userAnswer} for: ${problem.question}`);
-
-        const prompt = [
-          `Problem: ${problem.question}`,
-          `Correct answer: ${problem.answer}`,
-          `Student's answer: ${userAnswer}`,
-          `Is it correct? ${parseInt(userAnswer, 10) === Number(problem.answer) ? "Yes" : "No"}`,
-          `Explain in simple steps for a 5th grader. Use an example with candies or toys.`,
-        ].join("\n");
-
-        askHF(prompt);
-      } catch (err) {
-        console.error("mathAnswerSubmitted handler error", err);
-      }
-    }
-
-    window.addEventListener("mathAnswerSubmitted", onMathAnswer);
-    return () => window.removeEventListener("mathAnswerSubmitted", onMathAnswer);
-  }, [messages]);
-
-  // Free-form chat from the widget input
-  const inputRef = useRef(null);
-  const [chatInput, setChatInput] = useState("");
+  };
 
   const sendChatMessage = async () => {
     const text = chatInput?.trim();
     if (!text) return;
     pushMessage("user", text);
     setChatInput("");
-    await askHF(text);
-  };
 
-  const resetChat = () => {
-    setMessages([
-      {
-        id: `sys-1`,
-        role: "assistant",
-        content: "👋 Hi! I'm Mr. Math — your fun math teacher! I explain math in simple steps. Try a problem or ask me anything!",
-        ts: Date.now(),
-      },
-    ]);
-    if (typingIntervalRef.current) {
-      clearInterval(typingIntervalRef.current);
-    }
-    setTypingText("");
-  };
-
-  // Teacher character component
-  const TeacherCharacter = ({ isThinking }) => (
-    <div className="relative">
-      <motion.div
-        animate={{ y: [0, -5, 0] }}
-        transition={{ repeat: Infinity, duration: 3 }}
-        className="flex flex-col items-center"
-      >
-        {/* Head */}
-        <div className="w-12 h-12 bg-yellow-300 rounded-full flex items-center justify-center relative">
-          {/* Eyes */}
-          <div className="flex space-x-4">
-            <div className="w-2 h-2 bg-black rounded-full"></div>
-            <div className="w-2 h-2 bg-black rounded-full"></div>
-          </div>
-          {/* Smile */}
-          <div className="w-6 h-2 bg-black rounded-b-full absolute bottom-2"></div>
-          
-          {/* Glasses */}
-          <div className="absolute top-3 w-14 h-6 border-2 border-brown-800 rounded-full"></div>
+    if (!user) {
+      pushMessage(
+        "assistant",
+        <div className="flex flex-col gap-2">
+          <span>🔒 You must log in to unlock the Teacher.</span>
+          <a
+            href="/register"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-center"
+          >
+            👉 Register / Login
+          </a>
         </div>
-        
-        {/* Hat */}
-        <motion.div
-          animate={{ rotate: [0, 5, 0] }}
-          transition={{ repeat: Infinity, duration: 4 }}
-          className="w-16 h-6 bg-blue-500 rounded-t-lg absolute -top-4 z-10"
-        >
-          <div className="w-4 h-4 bg-blue-500 rounded-full absolute -bottom-2 left-6"></div>
-        </motion.div>
-        
-        {/* Body */}
-        <div className="w-14 h-10 bg-green-500 rounded-lg mt-2"></div>
-        
-        {/* Arms */}
-        {isThinking ? (
-          <motion.div
-            animate={{ rotate: [0, 20, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="w-6 h-2 bg-green-500 rounded-full absolute top-8 -left-2 rotate-45"
-          ></motion.div>
-        ) : (
-          <div className="w-6 h-2 bg-green-500 rounded-full absolute top-8 -left-2 rotate-45"></div>
-        )}
-        <div className="w-6 h-2 bg-green-500 rounded-full absolute top-8 -right-2 -rotate-45"></div>
-      </motion.div>
-    </div>
-  );
+      );
+      return;
+    }
+
+    const reply = localReply(text);
+    if (reply) {
+      simulateTyping(reply, () => {
+        pushMessage("assistant", reply);
+        setTypingText("");
+      });
+      return;
+    }
+
+    await askHF(text);
+
+    // After HF reply, suggest next problem
+    setTimeout(() => {
+      const suggestion = dynamicSuggestion(user);
+      pushMessage("assistant", suggestion);
+    }, 800);
+  };
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {/* Floating button when closed */}
       {!open && (
         <motion.button
           onClick={() => setOpen(true)}
-          aria-label="Open Math Teacher"
-          className="relative bg-gradient-to-r from-blue-400 to-green-400 text-white p-4 rounded-full shadow-lg"
-          whileHover={{ scale: 1.1, rotate: 5 }}
-          whileTap={{ scale: 0.9 }}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", damping: 6 }}
+          className="bg-pink-500 hover:bg-red-600 text-white px-4 py-3 rounded-full shadow-lg font-bold"
+          whileHover={{ scale: 1.1 }}
         >
-          <div className="flex flex-col items-center">
-            <TeacherCharacter />
-            <span className="text-xs font-bold mt-1">Math Help</span>
-          </div>
+          Chat with Teacher
         </motion.button>
       )}
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: 40 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 40 }}
-            transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="w-80 h-[500px] bg-white border-4 border-yellow-300 rounded-3xl shadow-lg flex flex-col overflow-hidden"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            className="w-96 h-[500px] bg-gradient-to-b from-pink-50 to-purple-100 border-2 border-pink-300 rounded-3xl shadow-2xl flex flex-col"
           >
-            {/* Header with teacher character */}
-            <motion.div 
-              className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-400 to-green-400 text-white"
-              initial={{ y: -50 }}
-              animate={{ y: 0 }}
-              transition={{ type: "spring", stiffness: 200 }}
-            >
+            <div className="p-3 bg-pink-500 text-white rounded-t-3xl flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <motion.div 
-                  className="bg-white p-1 rounded-full"
-                  whileHover={{ rotate: 10, scale: 1.1 }}
-                >
-                  <TeacherCharacter isThinking={thinking} />
-                </motion.div>
-                <div>
-                  <div className="font-bold text-lg">Mr. Math</div>
-                  <div className="text-xs opacity-80">Your math teacher!</div>
-                </div>
+                <img
+                  src="https://www.citypng.com/public/uploads/preview/anime-manga-cartoon-girl-teacher-hd-png-7017516948698304run65aoc5.png"
+                  alt="Teacher Avatar"
+                  className="w-10 h-10 rounded-full border-2 border-white shadow-md"
+                />
+                <span className="font-bold text-lg">Teacher</span>
               </div>
-              <div className="flex items-center gap-2">
-                <motion.button
-                  onClick={resetChat}
-                  title="Start new conversation"
-                  className="text-sm px-2 py-1 rounded-md bg-white bg-opacity-20 hover:bg-opacity-30 transition text-secondary"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                    🔄 New
-                </motion.button>
-                <motion.button
-                  onClick={() => setOpen(false)}
-                  title="Close"
-                  className="text-white hover:text-yellow-200 p-1 rounded-full transition"
-                  whileHover={{ scale: 1.2, rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  ✕
-                </motion.button>
-              </div>
-            </motion.div>
-
-            {/* Messages area */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gradient-to-b from-blue-50 to-green-50">
-              <AnimatePresence initial={false}>
-                {messages.map((m) => (
-                  <motion.div
-                    key={m.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={`max-w-[90%] px-4 py-3 rounded-2xl whitespace-pre-wrap shadow-sm ${
-                      m.role === "user" 
-                        ? "ml-auto bg-yellow-100 border border-yellow-200 text-yellow-900" 
-                        : "mr-auto bg-white border border-blue-200 text-blue-900"
-                    }`}
-                  >
-                    {m.content}
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-
-              {thinking && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex items-center gap-2 text-sm text-blue-600 bg-blue-100 px-4 py-3 rounded-2xl max-w-[90%] mr-auto"
-                >
-                  <motion.div
-                    animate={{ rotate: [0, 20, -20, 0] }}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="text-xl"
-                  >
-                    🤔
-                  </motion.div>
-                  <div>Thinking...</div>
-                </motion.div>
-              )}
-              
-              {typingText && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="max-w-[90%] mr-auto bg-white border border-blue-200 text-blue-900 px-4 py-3 rounded-2xl shadow-sm"
-                >
-                  {typingText}
-                  <motion.span
-                    animate={{ opacity: [0, 1, 0] }}
-                    transition={{ repeat: Infinity, duration: 1 }}
-                    className="ml-1"
-                  >
-                    ▊
-                  </motion.span>
-                </motion.div>
-              )}
-              
-              <div ref={messagesEndRef} />
+              <button onClick={() => setOpen(false)} className="text-xl font-bold">
+                ✖
+              </button>
             </div>
 
-            {/* Input area */}
-            <motion.div 
-              className="px-4 py-3 bg-white border-t border-gray-200"
-              initial={{ y: 50 }}
-              animate={{ y: 0 }}
-              transition={{ type: "spring", stiffness: 200 }}
-            >
-              <div className="flex gap-2">
-                <motion.input
-                  ref={inputRef}
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") sendChatMessage();
-                  }}
-                  placeholder="Ask a math question..."
-                  className="flex-1 px-4 py-2 rounded-xl border-2 border-blue-200 focus:border-blue-400 focus:outline-none transition"
-                  whileFocus={{ scale: 1.02 }}
-                />
-                <motion.button
-                  onClick={sendChatMessage}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  disabled={!chatInput.trim()}
-                  className="bg-gradient-to-r from-blue-400 to-green-400 text-white p-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center"
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {messages.map((m) => (
+                <div
+                  key={m.id}
+                  className={`px-3 py-2 rounded-2xl shadow-md max-w-[80%] whitespace-pre-line ${
+                    m.role === "user"
+                      ? "bg-yellow-200 text-gray-900 ml-auto"
+                      : "bg-pink-200 text-gray-800 mr-auto"
+                  }`}
                 >
-                  ➤
-                </motion.button>
-              </div>
-              
-              {/* Quick action buttons */}
-              <motion.div 
-                className="flex justify-center gap-2 mt-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
+                  {m.content}
+                </div>
+              ))}
+              {typingText && (
+                <div className="bg-pink-200 text-gray-800 mr-auto px-3 py-2 rounded-2xl shadow-md max-w-[80%] whitespace-pre-line">
+                  {typingText}
+                </div>
+              )}
+              <div ref={messagesEndRef}></div>
+            </div>
+
+            <div className="p-3 border-t border-pink-200 flex gap-2 bg-pink-50 rounded-b-3xl">
+              <input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
+                placeholder={user ? "Type here..." : "Login to unlock Teacher..."}
+                className={`flex-1 border border-pink-300 px-3 py-2 rounded-xl bg-white focus:outline-none ${
+                  !user ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={!user}
+              />
+              <button
+                onClick={sendChatMessage}
+                disabled={!user}
+                className={`bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-xl shadow-md ${
+                  !user ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setChatInput("How to add numbers?");
-                    setTimeout(() => inputRef.current?.focus(), 100);
-                  }}
-                  className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-200 transition"
-                >
-                  ➕ Add
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setChatInput("How to multiply?");
-                    setTimeout(() => inputRef.current?.focus(), 100);
-                  }}
-                  className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-lg hover:bg-green-200 transition"
-                >
-                  ✖ Multiply
-                </motion.button>
-              </motion.div>
-            </motion.div>
+                ➤
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

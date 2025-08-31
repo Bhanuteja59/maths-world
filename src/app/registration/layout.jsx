@@ -3,7 +3,7 @@ import React from "react";
 export default function Layout({ children }) {
   return (
     <>
-      <main className="fluid-ontainer mt-5">{children}</main>
+      <main className="fluid-ontainer">{children}</main>
     </>
   );
 }
