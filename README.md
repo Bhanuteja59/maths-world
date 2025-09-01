@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+📘 Maths World
 
-## Getting Started
 
-First, run the development server:
+Maths World is an interactive learning platform designed to make mathematics engaging, gamified, and fun. Whether you’re a beginner brushing up on basics or an advanced learner looking for challenges, Maths World offers a friendly, AI-powered chatbot, progress tracking, and competitive features that make learning exciting.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+👉 Try it live: maths-world.vercel.app
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+✨ Key Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🔐 Authentication – Email/Password (JWT) + Google OAuth (Passport.js)
 
-## Learn More
+🤖 AI Chatbot – Friendly and interactive assistant to guide learners
 
-To learn more about Next.js, take a look at the following resources:
+🏆 Gamified Levels – Beginner, Intermediate, Advanced
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+📊 Leaderboard & Profiles – Track progress, showcase achievements, and compete
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🎨 Modern UI – Built with Next.js + TailwindCSS
 
-## Deploy on Vercel
+⚡ Responsive Design – Seamlessly works across devices
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+🛠 Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Frontend: Next.js (React, JavaScript, TailwindCSS, Bootstrap)
+Backend: Node.js + Express
+Database: MongoDB
+Authentication: JWT + Passport + Google OAuth
+Hosting: Vercel (Frontend) & Render (Backend)
+
+🌍 Deployment
+
+Frontend: maths-world.vercel.app
+
+Backend: Hosted on Render
+
+👉 How it works:
+
+🔑 Register/Login
+
+🎯 Choose a level
+
+📝 Start practicing
+
+📊 Track progress
+
+🏆 Climb the leaderboard!
+
+🤝 Contributing
+
+We welcome contributions from developers who’d like to collaborate 🚀
+
+Fork the repo
+
+Create a feature branch
+
+Push your changes
+
+Open a Pull Request
+
+🙏 Final Note
+
+Maths World was built with ❤️ to make learning math engaging, interactive, and rewarding.
+
+💻 For Developers: Contribute, suggest improvements, and ⭐ the repo!
+📚 For Learners: Keep practicing, challenge yourself, and level up your skills!
+
+💡 Share Your Thoughts
+
+What excites you most about gamified learning?
+
+Which feature would make math practice even more fun for you?
+
+As a developer/learner, would you like to contribute ideas or features?
