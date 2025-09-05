@@ -6,11 +6,24 @@ import Confetti from "react-confetti";
 import { useRouter } from "next/navigation";
 import { GiStarsStack } from "react-icons/gi";
 import { AiOutlineCheckCircle } from "react-icons/ai";
+import { FaStar } from "react-icons/fa";
 import Loading from "../loading";
 
-
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// ✅ Custom Progress bar (animated)
+function Progress({ value = 0 }) {
+  return (
+    <div className="w-full bg-gray-200 rounded-full overflow-hidden h-3">
+      <motion.div
+        className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600"
+        initial={{ width: 0 }}
+        animate={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+        transition={{ duration: 0.6 }}
+      />
+    </div>
+  );
+}
 
 // Generate easy math problem
 const generateEasyProblem = () => {
@@ -40,7 +53,6 @@ const generateEasyProblem = () => {
       },
     },
   ];
-
   const op = operations[Math.floor(Math.random() * operations.length)];
   return { ...op.generate(), operation: op.name };
 };
@@ -48,18 +60,34 @@ const generateEasyProblem = () => {
 export default function EasyPage() {
   const router = useRouter();
 
+  const STORAGE_KEY = "easyProgress";
+
   const [problem, setProblem] = useState(null);
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState("");
   const [isCorrect, setIsCorrect] = useState(false);
   const [stars, setStars] = useState(0);
-  const [totalCorrect, setTotalCorrect] = useState(0); // Only correct answers
+  const [totalCorrect, setTotalCorrect] = useState(0);
   const [totalProblems, setTotalProblems] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [starAnimation, setStarAnimation] = useState(false);
 
+  // Load saved progress
   useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    setStars(saved.stars || 0);
+    setTotalCorrect(saved.totalCorrect || 0);
+    setTotalProblems(saved.totalProblems || 0);
     generateNewProblem();
   }, []);
+
+  // Save progress
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ stars, totalCorrect, totalProblems })
+    );
+  }, [stars, totalCorrect, totalProblems]);
 
   const generateNewProblem = () => {
     setProblem(generateEasyProblem());
@@ -74,8 +102,15 @@ export default function EasyPage() {
       if (!token) return;
       await fetch(`${API_URL}/user/score`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ difficulty: "easy", score: newStars, label: "Easy Level" }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          difficulty: "easy",
+          score: newStars,
+          label: "Easy Level",
+        }),
       });
     } catch (err) {
       console.error("Failed to save stars:", err);
@@ -95,19 +130,17 @@ export default function EasyPage() {
       const newTotalCorrect = totalCorrect + 1;
       setTotalCorrect(newTotalCorrect);
 
-      // Update stars every 10 correct answers
       const newStars = Math.floor(newTotalCorrect / 10);
       if (newStars > stars) {
         setStars(newStars);
+        setStarAnimation(true);
         saveStars(newStars);
-      }
 
-      if (newTotalCorrect % 3 === 0) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
+        setTimeout(() => setStarAnimation(false), 2000);
       }
 
-      // Auto-load next problem after 1.5s
       setTimeout(() => generateNewProblem(), 1500);
     } else {
       setFeedback(`❌ Oops! Correct answer is ${problem.answer}`);
@@ -126,14 +159,15 @@ export default function EasyPage() {
     <div className="min-h-screen bg-gradient-to-tr from-yellow-100 via-green-100 to-blue-100 p-4 md:p-8 font-sans">
       {showConfetti && <Confetti recycle={false} numberOfPieces={300} />}
 
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left side: Problem card */}
-        <div className="md:col-span-2 bg-white rounded-3xl shadow-2xl p-6 border-4 border-yellow-300">
-          <h1 className="text-4xl font-extrabold text-center text-purple-700 mb-4">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Problem Card */}
+        <div className="lg:col-span-2 bg-white rounded-3xl shadow-xl p-6 border-4 border-yellow-400">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-center text-purple-700 mb-6">
             🎈 Easy Math Practice
           </h1>
 
-          <div className="bg-blue-400 rounded-xl p-4 mb-6 text-center text-white font-bold text-xl shadow-lg">
+          <div className="bg-blue-400 rounded-xl p-3 md:p-4 mb-6 text-center text-white font-bold text-lg md:text-xl shadow-md">
             Problem {totalProblems + 1}
           </div>
 
@@ -146,12 +180,17 @@ export default function EasyPage() {
               transition={{ duration: 0.8 }}
               className="text-center mb-6"
             >
-              <h2 className="text-5xl font-extrabold text-purple-800 mb-2">{problem.question} = ?</h2>
-              <p className="text-lg font-semibold text-gray-700">Operation: {problem.operation}</p>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-purple-900 mb-3">
+                {problem.question} = ?
+              </h2>
+              <p className="text-lg font-semibold text-gray-700">
+                Operation: {problem.operation}
+              </p>
             </motion.div>
           </AnimatePresence>
 
-          <div className="flex flex-col items-center">
+          {/* Input & Controls */}
+          <div className="flex flex-col items-center gap-4">
             <input
               type="number"
               value={answer}
@@ -159,14 +198,16 @@ export default function EasyPage() {
               onKeyDown={handleKeyDown}
               placeholder="Enter your answer"
               disabled={isCorrect}
-              className="w-full max-w-xs p-4 text-center text-2xl border-4 border-green-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-yellow-400 mb-4 font-bold"
+              className="w-full max-w-xs p-4 text-center text-2xl border-4 border-green-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-yellow-400 font-bold"
             />
 
             {feedback && (
               <motion.p
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className={`text-2xl font-bold mb-4 ${isCorrect ? "text-green-600" : "text-red-600"}`}
+                className={`text-xl md:text-2xl font-bold ${
+                  isCorrect ? "text-green-600" : "text-red-600"
+                }`}
               >
                 {feedback}
               </motion.p>
@@ -177,42 +218,75 @@ export default function EasyPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={checkAnswer}
-                className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-bold px-8 py-3 rounded-2xl text-2xl shadow-lg"
+                className="bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-bold px-8 py-3 rounded-2xl text-lg md:text-xl shadow-lg"
               >
                 ✅ Check Answer
               </motion.button>
             )}
-                      <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              generateNewProblem();
-              setAnswer("");
-            }}
-            className="bg-purple-500 hover:bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg mt-4 text-lg"
-          >
-            🔄 Skip Question
-          </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                generateNewProblem();
+                setAnswer("");
+              }}
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg text-lg"
+            >
+              🔄 Skip Question
+            </motion.button>
           </div>
         </div>
 
-        {/* Right side: Score card */}
-        <div className="bg-white rounded-3xl shadow-2xl p-6 border-4 border-pink-300 flex flex-col gap-6 justify-center">
-          <div className="text-center bg-pink-100 rounded-xl p-4 shadow-inner">
+        {/* Scorecard */}
+        <div className="bg-white rounded-3xl shadow-xl p-6 border-4 border-pink-300 flex flex-col gap-6 sticky top-6 h-fit">
+          {/* Stars */}
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={starAnimation ? { scale: [1, 1.5, 1] } : { scale: 1 }}
+            transition={{ duration: 0.8 }}
+            className="text-center bg-pink-100 rounded-xl p-5 shadow-inner"
+          >
             <h3 className="text-xl font-bold text-purple-700 flex items-center justify-center gap-2">
-              <GiStarsStack size={32} /> Stars
+              <GiStarsStack size={28} /> Stars Earned
             </h3>
-            <p className="text-4xl font-extrabold text-yellow-500">{stars} ⭐</p>
-            <p className="text-2xl text-gray-600 mt-1">1 star = 10 correct answers</p>
+            <p className="text-5xl font-extrabold text-yellow-500 drop-shadow-lg mt-2">
+              {stars} <FaStar className="inline text-yellow-400" />
+            </p>
+            <p className="text-sm text-gray-600 mt-1">
+              (1 star = 10 correct answers)
+            </p>
+          </motion.div>
+
+          {/* Progress */}
+          <div className="text-center bg-green-100 rounded-xl p-5 shadow-inner">
+            <h3 className="text-xl font-bold text-purple-700 flex items-center justify-center gap-2">
+              <AiOutlineCheckCircle size={26} /> Correct Answers
+            </h3>
+            <p className="text-4xl font-extrabold text-green-600 mt-2">
+              {totalCorrect}
+            </p>
+            <Progress value={(totalCorrect % 10) * 10} />
+            <p className="text-sm text-gray-600 mt-2">
+              {10 - (totalCorrect % 10)} more for next ⭐
+            </p>
           </div>
 
-          <div className="text-center bg-green-100 rounded-xl p-4 shadow-inner">
-            <h3 className="text-xl font-bold text-purple-700 flex items-center justify-center gap-2">
-              <AiOutlineCheckCircle size={32} /> Correct Answers
-            </h3>
-            <p className="text-4xl font-extrabold text-red-500">{totalCorrect}</p>
-          </div>
-
+          {/* Reset */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              setStars(0);
+              setTotalCorrect(0);
+              setTotalProblems(0);
+              localStorage.removeItem(STORAGE_KEY);
+              generateNewProblem();
+            }}
+            className="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg text-lg"
+          >
+            🔁 Reset Progress
+          </motion.button>
         </div>
       </div>
     </div>

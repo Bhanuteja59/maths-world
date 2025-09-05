@@ -6,7 +6,23 @@ import Confetti from "react-confetti";
 import { useRouter } from "next/navigation";
 import { GiStarsStack } from "react-icons/gi";
 import { AiOutlineCheckCircle } from "react-icons/ai";
+import { FaStar } from "react-icons/fa";
+
 import Loading from "../loading";
+
+// ✅ Custom Progress Component (no dependency issues)
+function Progress({ value = 0 }) {
+  return (
+    <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+      <motion.div
+        className="h-full bg-gradient-to-r from-purple-400 via-pink-400 to-red-400"
+        initial={{ width: 0 }}
+        animate={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      />
+    </div>
+  );
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -16,7 +32,7 @@ const generateAdvancedProblem = () => {
     {
       name: "Addition",
       generate: () => {
-        const a = Math.floor(Math.random() * 900) + 100; // 100 - 999
+        const a = Math.floor(Math.random() * 900) + 100;
         const b = Math.floor(Math.random() * 900) + 100;
         return { question: `${a} + ${b}`, answer: a + b };
       },
@@ -24,7 +40,7 @@ const generateAdvancedProblem = () => {
     {
       name: "Subtraction",
       generate: () => {
-        const a = Math.floor(Math.random() * 900) + 200; // ensure positive result
+        const a = Math.floor(Math.random() * 900) + 200;
         const b = Math.floor(Math.random() * 200) + 50;
         return { question: `${a} - ${b}`, answer: a - b };
       },
@@ -111,7 +127,6 @@ export default function AdvancedPage() {
       const newTotalCorrect = totalCorrect + 1;
       setTotalCorrect(newTotalCorrect);
 
-      // Update stars every 25 correct answers
       const newStars = Math.floor(newTotalCorrect / 25);
       if (newStars > stars) {
         setStars(newStars);
@@ -135,20 +150,22 @@ export default function AdvancedPage() {
     if (e.key === "Enter") checkAnswer();
   };
 
-  if (!problem) return <Loading />;
+  if (!problem) return <div className="text-center">
+    <Loading />
+  </div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-yellow-50 via-red-50 to-purple-50 p-4 md:p-8 font-sans">
       {showConfetti && <Confetti recycle={false} numberOfPieces={300} />}
 
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Problem card */}
-        <div className="md:col-span-2 bg-white rounded-3xl shadow-2xl p-6 border-4 border-red-300">
-          <h1 className="text-4xl font-extrabold text-center text-purple-800 mb-4">
+        <div className="md:col-span-2 bg-white rounded-3xl shadow-2xl p-8 border-4 border-red-300 flex flex-col justify-between">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-center text-purple-800 mb-6">
             🔢 Advanced Math Practice
           </h1>
 
-          <div className="bg-red-400 rounded-xl p-4 mb-6 text-center text-white font-bold text-xl shadow-lg">
+          <div className="bg-red-400 rounded-xl p-4 mb-6 text-center text-white font-bold text-2xl shadow-lg">
             Problem {totalProblems + 1}
           </div>
 
@@ -197,14 +214,15 @@ export default function AdvancedPage() {
                 ✅ Check Answer
               </motion.button>
             )}
-                      <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => generateNewProblem()}
-            className="bg-purple-500 hover:bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg mt-4 text-lg"
-          >
-            🔄 Skip Question 
-          </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => generateNewProblem()}
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg mt-4 text-lg"
+            >
+              🔄 Skip Question
+            </motion.button>
           </div>
         </div>
 
@@ -215,7 +233,7 @@ export default function AdvancedPage() {
               <GiStarsStack size={32} /> Stars
             </h3>
             <p className="text-4xl font-extrabold text-yellow-500">{stars} ⭐</p>
-            <p className="text-2xl text-gray-600 mt-1">1 star = 25 correct answers</p>
+            <p className="text-lg text-gray-600 mt-1">1 star = 25 correct answers</p>
           </div>
 
           <div className="text-center bg-green-100 rounded-xl p-4 shadow-inner">
@@ -225,6 +243,10 @@ export default function AdvancedPage() {
             <p className="text-4xl font-extrabold text-red-500">{totalCorrect}</p>
           </div>
 
+          <div className="mt-2">
+            <Progress value={(totalCorrect % 25) * 4} />
+            <p className="text-sm text-gray-600 mt-1 text-center">Progress toward next ⭐</p>
+          </div>
         </div>
       </div>
     </div>
