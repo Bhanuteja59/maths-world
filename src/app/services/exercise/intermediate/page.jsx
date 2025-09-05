@@ -180,24 +180,6 @@ export default function IntermediatePage() {
       {showConfetti && <Confetti recycle={false} numberOfPieces={300} />}
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* AI Helper card (always left, fixed width) */}
-        <div className="bg-white rounded-3xl shadow-2xl p-6 border-4 border-blue-300 md:col-span-1 flex flex-col">
-          <h2 className="text-2xl font-extrabold text-purple-700 mb-4">🤖 Robot Helper</h2>
-
-          {aiLoading ? (
-            <motion.div
-              animate={{ rotate: [0, 20, -20, 0] }}
-              transition={{ repeat: Infinity, duration: 1 }}
-              className="text-6xl text-yellow-500 text-center mb-4"
-            >
-              🤖
-            </motion.div>
-          ) : (
-            <p className="text-md text-gray-700 bg-yellow-50 p-3 rounded-xl max-h-64 overflow-y-auto">
-              {aiMessage || "Solve a problem to get my tips!"}
-            </p>
-          )}
-        </div>
 
         {/* Problem card */}
         <div className="md:col-span-2 bg-white rounded-3xl shadow-2xl p-6 border-4 border-purple-300">
