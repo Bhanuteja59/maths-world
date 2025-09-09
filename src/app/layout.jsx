@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google"; // Use valid Google Fonts
 import "./globals.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -14,19 +13,14 @@ const robotoMono = Roboto_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Maths World",
-  description: "Created by R.BhanuTeja",
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        {/* Google Site Verification */}
+        <meta name="google-site-verification" 
+        content="WF2XUxGii2MkY2Ltao10yC2dsAichcRx64AU3siGsQc" />
+
         {/* Google AdSense Auto Ads */}
         <script
           async
