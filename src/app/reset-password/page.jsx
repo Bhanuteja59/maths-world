@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 
-export default function ResetPassword() {
-  const { token } = useParams();
-  const navigate = useNavigate();
+export default function ResetPassword({ params }) {
+  const router = useRouter();
+  const { token } = params; // Next.js dynamic route param
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,7 @@ export default function ResetPassword() {
         setShowDialog(true);
         setTimeout(() => {
           setShowDialog(false);
-          navigate("/register");
+          router.push("/register"); // Next.js navigation
         }, 2000);
       }
     } catch (err) {
@@ -92,7 +92,6 @@ export default function ResetPassword() {
           </motion.button>
         </form>
 
-        {/* Error message (if any) */}
         <AnimatePresence>
           {msg && !showDialog && (
             <motion.p
@@ -111,7 +110,6 @@ export default function ResetPassword() {
         </AnimatePresence>
       </motion.div>
 
-      {/* ✅ Success Dialog Popup */}
       <AnimatePresence>
         {showDialog && (
           <motion.div
@@ -140,11 +138,7 @@ export default function ResetPassword() {
                   strokeWidth={3}
                   viewBox="0 0 24 24"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 13l4 4L19 7"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </motion.div>
               <h2 className="text-xl font-bold text-green-600 mb-2">
