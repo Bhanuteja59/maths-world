@@ -21,12 +21,6 @@ export default function RegistrationPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const token = localStorage.getItem("jwt");
-    if (token) {
-      router.replace("/home");
-      return;
-    }
-
     // ✅ Handle Google OAuth redirect with ?token
     const params = new URLSearchParams(window.location.search);
     const oauthToken = params.get("token");
@@ -228,21 +222,69 @@ export default function RegistrationPage() {
         </div>
 
         {/* Switch between Signup/Login */}
-        <div className="text-center mt-4">
-          <p className="text-sm text-gray-600">
-            {mode === "signup" ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button
-              type="button"
-              onClick={() => {
-                setMode((m) => (m === "signup" ? "login" : "signup"));
-                setErrorMsg("");
-              }}
-              className="text-green-600 font-medium hover:underline"
-            >
-              {mode === "signup" ? "Login" : "Sign up"}
-            </button>
-          </p>
-        </div>
+<div className="text-center mt-4">
+  {mode === "signup" ? (
+    <p className="text-sm text-gray-600">
+      Already have an account?{" "}
+      <button
+        type="button"
+        onClick={() => {
+          setMode("login");
+          setErrorMsg("");
+        }}
+        className="text-green-600 font-medium hover:underline"
+      >
+        Login
+      </button>
+    </p>
+  ) : mode === "login" ? (
+    <>
+      <p className="text-sm text-gray-600">
+        Don't have an account?{" "}
+        <button
+          type="button"
+          onClick={() => {
+            setMode("signup");
+            setErrorMsg("");
+          }}
+          className="text-green-600 font-medium hover:underline"
+        >
+          Sign up
+        </button>
+      </p>
+      <a href="/forgot-password">
+            <p className="text-sm text-gray-600 mt-2">
+        Forgot password?{" "}
+        <button
+          type="button"
+          onClick={() => {
+            setMode("forgot");
+            setErrorMsg("");
+          }}
+          className="text-red-600 font-medium hover:underline"
+        >
+          Reset here
+        </button>
+      </p>
+      </a>
+    </>
+  ) : (
+    <p className="text-sm text-gray-600">
+      Remembered your password?{" "}
+      <button
+        type="button"
+        onClick={() => {
+          setMode("login");
+          setErrorMsg("");
+        }}
+        className="text-green-600 font-medium hover:underline"
+      >
+        Back to Login
+      </button>
+    </p>
+  )}
+</div>
+
 
         <br />
 
