@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function ResetPassword() {
   const { token } = useParams();
-  const router = useRouter();
-
+  const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,7 +22,7 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API}/reset-password/${token}`, {
+      const res = await fetch(`${API}/user/reset-password/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
@@ -36,7 +35,7 @@ export default function ResetPassword() {
         setShowDialog(true);
         setTimeout(() => {
           setShowDialog(false);
-          router.push("/login");
+          navigate("/register");
         }, 2000);
       }
     } catch (err) {
@@ -48,18 +47,17 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 p-6">
       <motion.div
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="w-full max-w-lg bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 sm:p-12"
+        className="w-full max-w-md bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-10"
       >
-        <h2 className="text-3xl font-bold text-center text-white mb-8">
+        <h2 className="text-2xl font-bold text-center text-white mb-6">
           Reset Password
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Password Input */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="relative">
             <FaLock className="absolute left-4 top-4 text-gray-400" />
             <input
@@ -67,7 +65,7 @@ export default function ResetPassword() {
               placeholder="Enter new password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-12 pr-10 py-3 rounded-xl bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full pl-12 pr-10 py-3 rounded-full bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               required
             />
             <button
@@ -79,13 +77,12 @@ export default function ResetPassword() {
             </button>
           </div>
 
-          {/* Submit Button */}
           <motion.button
             whileHover={{ scale: loading ? 1 : 1.05 }}
             whileTap={{ scale: loading ? 1 : 0.95 }}
             type="submit"
             disabled={loading}
-            className={`w-full py-3 rounded-xl font-semibold shadow-lg transition ${
+            className={`w-full py-3 rounded-full font-semibold shadow-lg transition ${
               loading
                 ? "bg-gray-500 cursor-not-allowed"
                 : "bg-gradient-to-r from-indigo-500 to-pink-500 text-white hover:shadow-indigo-500/40"
@@ -95,7 +92,7 @@ export default function ResetPassword() {
           </motion.button>
         </form>
 
-        {/* Error/Success message */}
+        {/* Error message (if any) */}
         <AnimatePresence>
           {msg && !showDialog && (
             <motion.p
@@ -114,7 +111,7 @@ export default function ResetPassword() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Success Dialog */}
+      {/* ✅ Success Dialog Popup */}
       <AnimatePresence>
         {showDialog && (
           <motion.div
@@ -128,7 +125,7 @@ export default function ResetPassword() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.7, opacity: 0 }}
               transition={{ duration: 0.4 }}
-              className="bg-white rounded-2xl shadow-2xl p-8 text-center max-w-sm w-full"
+              className="bg-white rounded-2xl shadow-2xl p-10 text-center max-w-sm w-full"
             >
               <motion.div
                 initial={{ scale: 0 }}
