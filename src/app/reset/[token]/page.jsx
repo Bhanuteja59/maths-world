@@ -7,7 +7,7 @@ import { FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function ResetPassword({ params }) {
   const router = useRouter();
-  const { token } = params; // Next.js dynamic route param
+  const { token } = params; // dynamic route token
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,19 +28,29 @@ export default function ResetPassword({ params }) {
         body: JSON.stringify({ password }),
       });
 
-      const data = await res.json();
-      setMsg(data.message);
-
-      if (data.success) {
-        setShowDialog(true);
-        setTimeout(() => {
-          setShowDialog(false);
-          router.push("/register"); // Next.js navigation
-        }, 2000);
+      // Safe JSON parsing
+      let data;
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        throw new Error(`Unexpected response from server: ${text}`);
       }
+
+      if (!res.ok) throw new Error(data.message || "Failed to reset password");
+
+      // Success
+      setMsg(data.message);
+      setShowDialog(true);
+
+      setTimeout(() => {
+        setShowDialog(false);
+        router.push("/login"); // redirect to login
+      }, 2000);
     } catch (err) {
       console.error("Reset password error:", err);
-      setMsg("Something went wrong. Please try again.");
+      setMsg(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
