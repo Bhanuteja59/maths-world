@@ -46,7 +46,7 @@ export default function ResetPassword({ params }) {
 
       setTimeout(() => {
         setShowDialog(false);
-        router.push("/login"); // redirect to login
+        router.push("/registration"); // redirect to login
       }, 2000);
     } catch (err) {
       console.error("Reset password error:", err);
