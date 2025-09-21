@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FcGoogle } from "react-icons/fc";
 import { useRouter } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
 export default function RegistrationPage() {
   const router = useRouter();
@@ -29,9 +29,10 @@ export default function RegistrationPage() {
       return;
     }
 
-    verifyToken();
+    verifyToken(); // background token check
   }, []);
 
+  // ✅ Safe token check with timeout
   const verifyToken = async () => {
     const token = localStorage.getItem("jwt");
     if (!token) {
@@ -40,10 +41,19 @@ export default function RegistrationPage() {
     }
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000); // abort after 8s
+
       const res = await fetch(`${API_BASE}/user/me`, {
         headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
+
+      if (!res.ok) throw new Error("Token invalid");
       const data = await res.json();
+
       if (data.success) {
         localStorage.setItem("user", JSON.stringify(data.user));
         router.push("/home");
@@ -273,7 +283,6 @@ export default function RegistrationPage() {
           </motion.button>
         </form>
 
-        {/* Google Button */}
         {(mode === "signup" || mode === "login") && (
           <button
             onClick={handleGoogle}
@@ -286,7 +295,6 @@ export default function RegistrationPage() {
           </button>
         )}
 
-        {/* Mode Switch */}
         <div className="text-center mt-4 text-sm text-gray-600">
           {mode === "signup" ? (
             <>
@@ -316,10 +324,8 @@ export default function RegistrationPage() {
             </>
           )}
         </div>
-
       </motion.div>
 
-      {/* Success Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div
