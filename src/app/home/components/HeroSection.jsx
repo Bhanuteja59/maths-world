@@ -82,8 +82,8 @@ function HeroSection() {
                 !
               </>
             ) : (
-              <Link href="/registration" className="underline text-yellow-300">
-                Login to start 🚀
+              <Link href="/home" className="underline text-yellow-300">
+                Welcome Champ! 🚀
               </Link>
             )}
           </motion.h2>
