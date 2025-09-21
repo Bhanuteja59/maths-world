@@ -5,46 +5,89 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FcGoogle } from "react-icons/fc";
 import { useRouter } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
 
 export default function RegistrationPage() {
   const router = useRouter();
-  const [mode, setMode] = useState("signup"); // "signup" | "login"
+  const [mode, setMode] = useState("signup"); // "signup" | "login" | "forgot"
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
-  const [checkingToken, setCheckingToken] = useState(true); // ✅ for JWT check
+  const [checkingToken, setCheckingToken] = useState(true); // for JWT check
   const [errorMsg, setErrorMsg] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  // ✅ Check if user already has token in localStorage
+  // Check existing JWT and handle Google OAuth redirect
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // ✅ Handle Google OAuth redirect with ?token
     const params = new URLSearchParams(window.location.search);
     const oauthToken = params.get("token");
+
     if (oauthToken) {
-      localStorage.setItem("jwt", oauthToken);
+      handleOAuthRedirect(oauthToken);
+      return;
+    }
+
+    verifyToken();
+  }, []);
+
+  const verifyToken = async () => {
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      setCheckingToken(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/user/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        router.push("/home");
+      } else {
+        localStorage.removeItem("jwt");
+        localStorage.removeItem("user");
+      }
+    } catch (err) {
+      console.error("Token verification failed:", err);
+      localStorage.removeItem("jwt");
+      localStorage.removeItem("user");
+    } finally {
+      setCheckingToken(false);
+    }
+  };
+
+  const handleOAuthRedirect = async (token) => {
+    localStorage.setItem("jwt", token);
+
+    try {
+      const res = await fetch(`${API_BASE}/user/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+    } catch (err) {
+      console.error("OAuth token fetch error:", err);
+    } finally {
       const url = new URL(window.location.href);
       url.searchParams.delete("token");
       window.history.replaceState({}, document.title, url.toString());
       handleSuccess();
-      return;
     }
-
-    setCheckingToken(false); // ✅ Done checking
-  }, [router]);
+  };
 
   const handleChange = (e) => {
     setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
   };
 
-  function validateEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  async function handleAuth(e) {
+  const handleAuth = async (e) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -56,16 +99,33 @@ export default function RegistrationPage() {
       setErrorMsg("Please provide a valid username (at least 2 characters).");
       return;
     }
+    if ((mode === "signup" || mode === "login") && (!form.password || form.password.length < 4)) {
+      setErrorMsg("Password must be at least 4 characters long.");
+      return;
+    }
 
     setLoading(true);
     try {
-      const endpoint =
-        mode === "signup" ? `${API_BASE}/user/signup` : `${API_BASE}/user/login`;
+      let endpoint = "";
+      let payload = {};
 
-      const payload =
-        mode === "signup"
-          ? { username: form.username.trim(), email: form.email.trim(), password: form.password }
-          : { email: form.email.trim(), password: form.password };
+      if (mode === "signup") {
+        endpoint = `${API_BASE}/user/signup`;
+        payload = {
+          username: form.username.trim(),
+          email: form.email.trim(),
+          password: form.password,
+        };
+      } else if (mode === "login") {
+        endpoint = `${API_BASE}/user/login`;
+        payload = {
+          email: form.email.trim(),
+          password: form.password,
+        };
+      } else if (mode === "forgot") {
+        endpoint = `${API_BASE}/user/forgot-password`;
+        payload = { email: form.email.trim() };
+      }
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -73,42 +133,40 @@ export default function RegistrationPage() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await res.json();
 
-      if (!res.ok) {
-        const msg = data?.message || data?.error || `Server error (${res.status})`;
-        throw new Error(msg);
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || `Server error (${res.status})`);
       }
 
-      if (!data?.success || !data?.token) {
-        throw new Error(data?.message || "Authentication failed");
+      if (mode === "forgot") {
+        setErrorMsg(
+          "✅ Password reset link has been sent to your email. Please check your inbox and follow the instructions. The link will expire in 15 minutes."
+        );
+      } else {
+        localStorage.setItem("jwt", data.token);
+        if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+        handleSuccess();
       }
-
-      localStorage.setItem("jwt", data.token);
-      if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
-
-      handleSuccess();
     } catch (err) {
-      setErrorMsg(err.message || "Auth error");
+      setErrorMsg(err.message || "Authentication error");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  // ✅ Success modal handler
   const handleSuccess = () => {
     setShowModal(true);
     setTimeout(() => {
       setShowModal(false);
       router.push("/home");
-    }, 1500); // auto close after 1.5s
+    }, 1500);
   };
 
   const handleGoogle = () => {
     window.location.href = `${API_BASE}/auth/google`;
   };
 
-  // ✅ Show loading screen while checking token
   if (checkingToken) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 via-blue-100 to-purple-100">
@@ -126,29 +184,24 @@ export default function RegistrationPage() {
       <motion.div
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.6 }}
         className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 relative"
       >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">
-            {mode === "signup" ? "🎉 Create Account" : "👋 Welcome Back"}
-          </h1>
-        </div>
-
+        <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight mb-2">
+          {mode === "signup" ? "🎉 Create Account" : mode === "login" ? "👋 Welcome Back" : "🔑 Reset Password"}
+        </h1>
         <p className="text-gray-500 text-sm mb-6">
           {mode === "signup"
             ? "Sign up to track progress, earn stars ⭐ and unlock more fun."
-            : "Log in to continue your journey 🚀"}
+            : mode === "login"
+            ? "Log in to continue your journey 🚀"
+            : "Enter your email and we'll send you a password reset link."}
         </p>
 
         {errorMsg && (
-          <div className="mb-4 text-sm text-red-700 bg-red-100 px-3 py-2 rounded-md">
-            {errorMsg}
-          </div>
+          <div className="mb-4 text-sm text-red-700 bg-red-100 px-3 py-2 rounded-md">{errorMsg}</div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleAuth} className="space-y-4">
           {mode === "signup" && (
             <div>
@@ -175,27 +228,29 @@ export default function RegistrationPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Password</label>
-            <div className="relative">
-              <input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={form.password}
-                onChange={handleChange}
-                placeholder="At least 4 characters"
-                minLength={4}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-400"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((s) => !s)}
-                className="absolute right-3 top-3 text-sm text-gray-500"
-              >
-                {showPassword ? "🙈 Hide" : "👁 Show"}
-              </button>
+          {(mode === "signup" || mode === "login") && (
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Password</label>
+              <div className="relative">
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="At least 4 characters"
+                  minLength={4}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute right-3 top-3 text-sm text-gray-500"
+                >
+                  {showPassword ? "🙈 Hide" : "👁 Show"}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <motion.button
             whileHover={{ scale: 1.03 }}
@@ -207,100 +262,64 @@ export default function RegistrationPage() {
             {loading
               ? mode === "signup"
                 ? "Creating..."
-                : "Signing in..."
+                : mode === "login"
+                ? "Signing in..."
+                : "Sending..."
               : mode === "signup"
               ? "Create Account"
-              : "Sign In"}
+              : mode === "login"
+              ? "Sign In"
+              : "Send Reset Link"}
           </motion.button>
         </form>
 
-        {/* Divider */}
-        <div className="flex items-center gap-3 my-6">
-          <div className="flex-1 h-px bg-gray-200" />
-          <div className="text-sm text-gray-400">or</div>
-          <div className="flex-1 h-px bg-gray-200" />
+        {/* Google Button */}
+        {(mode === "signup" || mode === "login") && (
+          <button
+            onClick={handleGoogle}
+            className="w-full flex items-center justify-center gap-3 border border-gray-200 rounded-xl py-3 hover:bg-gray-50 transition mt-4"
+          >
+            <FcGoogle size={22} />
+            <span className="font-medium text-gray-700">
+              {mode === "signup" ? "Sign up with Google" : "Sign in with Google"}
+            </span>
+          </button>
+        )}
+
+        {/* Mode Switch */}
+        <div className="text-center mt-4 text-sm text-gray-600">
+          {mode === "signup" ? (
+            <>
+              Already have an account?{" "}
+              <button onClick={() => setMode("login")} className="text-green-600 font-medium hover:underline">
+                Login
+              </button>
+            </>
+          ) : mode === "login" ? (
+            <>
+              Don't have an account?{" "}
+              <button onClick={() => setMode("signup")} className="text-green-600 font-medium hover:underline">
+                Sign up
+              </button>
+              <br />
+              Forgot password?{" "}
+              <button onClick={() => setMode("forgot")} className="text-red-600 font-medium hover:underline">
+                Reset here
+              </button>
+            </>
+          ) : (
+            <>
+              Remembered your password?{" "}
+              <button onClick={() => setMode("login")} className="text-green-600 font-medium hover:underline">
+                Back to Login
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Switch between Signup/Login */}
-<div className="text-center mt-4">
-  {mode === "signup" ? (
-    <p className="text-sm text-gray-600">
-      Already have an account?{" "}
-      <button
-        type="button"
-        onClick={() => {
-          setMode("login");
-          setErrorMsg("");
-        }}
-        className="text-green-600 font-medium hover:underline"
-      >
-        Login
-      </button>
-    </p>
-  ) : mode === "login" ? (
-    <>
-      <p className="text-sm text-gray-600">
-        Don't have an account?{" "}
-        <button
-          type="button"
-          onClick={() => {
-            setMode("signup");
-            setErrorMsg("");
-          }}
-          className="text-green-600 font-medium hover:underline"
-        >
-          Sign up
-        </button>
-      </p>
-      <a href="/forgot-password">
-            <p className="text-sm text-gray-600 mt-2">
-        Forgot password?{" "}
-        <button
-          type="button"
-          onClick={() => {
-            setMode("forgot");
-            setErrorMsg("");
-          }}
-          className="text-red-600 font-medium hover:underline"
-        >
-          Reset here
-        </button>
-      </p>
-      </a>
-    </>
-  ) : (
-    <p className="text-sm text-gray-600">
-      Remembered your password?{" "}
-      <button
-        type="button"
-        onClick={() => {
-          setMode("login");
-          setErrorMsg("");
-        }}
-        className="text-green-600 font-medium hover:underline"
-      >
-        Back to Login
-      </button>
-    </p>
-  )}
-</div>
-
-
-        <br />
-
-        {/* Google Button */}
-        <button
-          onClick={handleGoogle}
-          className="w-full flex items-center justify-center gap-3 border border-gray-200 rounded-xl py-3 hover:bg-gray-50 transition"
-        >
-          <FcGoogle size={22} />
-          <span className="font-medium text-gray-700">
-            {mode === "signup" ? "Sign up with Google" : "Sign in with Google"}
-          </span>
-        </button>
       </motion.div>
 
-      {/* ✅ Success Modal */}
+      {/* Success Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -320,7 +339,9 @@ export default function RegistrationPage() {
               <p className="text-gray-600 mb-4">
                 {mode === "signup"
                   ? "Your account has been created ✨"
-                  : "You are now logged in 🚀"}
+                  : mode === "login"
+                  ? "You are now logged in 🚀"
+                  : "Check your email for the password reset link."}
               </p>
               <motion.div
                 animate={{ rotate: [0, 10, -10, 0] }}
